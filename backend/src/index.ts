@@ -69,9 +69,10 @@ async function build() {
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   });
+  const corsOrigins = (env.CORS_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
   await app.register(cors, {
-    origin: env.NODE_ENV === "production"
-      ? (env.CORS_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean)
+    origin: corsOrigins.length > 0
+      ? corsOrigins
       : true,
     credentials: true,
   });
