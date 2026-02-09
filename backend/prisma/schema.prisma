@@ -1,0 +1,916 @@
+// =============================================================================
+// Prisma Schema - SOC 2 aligned, enterprise RBAC foundation
+// Future: multi-tenant (add tenantId), audit logs (audit_events table),
+// encryption at rest (DB-level or application-level field encryption)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Users - Soft delete for audit trail (SOC 2)
+// -----------------------------------------------------------------------------
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  phone         String?    @unique
+  password      String     // bcrypt hash only; never store plaintext
+  emailVerified Boolean    @default(false)
+  phoneVerified Boolean    @default(false)
+  status        UserStatus @default(ACTIVE)
+
+  // Terms accepted at registration (one-time, user-level)
+  termsAcceptedAt   DateTime?  // Terms of Service accepted
+  privacyAcceptedAt DateTime?  // Privacy Policy accepted
+  dpaAcceptedAt     DateTime?  // Data Processing Agreement accepted
+
+  deletedAt     DateTime?  // Soft delete for audit
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  userRoles           UserRole[]
+  supportTickets      SupportTicket[]
+  ticketReplies       TicketReply[]
+  // Multi-account system relations
+  accounts            Account[]            // User can have multiple accounts
+  companyPartners     CompanyPartner[]     // Partner in other company accounts
+  partnershipPartners PartnershipPartner[] // Partner in other partnership accounts
+  trustPartners       TrustPartner[]       // Trustee/Beneficiary in other trust accounts
+  legalConsents       LegalConsent[]       // Consents given by user
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([deletedAt])
+  // Future: @@index([tenantId]) for multi-tenancy
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+// -----------------------------------------------------------------------------
+// RBAC: Roles & Permissions
+// -----------------------------------------------------------------------------
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles        UserRole[]
+  rolePermissions  RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique  // e.g. view_dashboard, manage_users
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// -----------------------------------------------------------------------------
+// Token revocation (refresh token rotation / logout)
+// Future: move to Redis for distributed revocations at scale
+// -----------------------------------------------------------------------------
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique  // Store hash, not raw token
+  userId    String
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
+// -----------------------------------------------------------------------------
+// OTP Verification - Email & Phone OTP for registration
+// -----------------------------------------------------------------------------
+model OtpVerification {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  phone     String?
+  otp       String   // Hashed OTP
+  type      OtpType
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([phone])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum OtpType {
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  PASSWORD_RESET
+}
+
+// -----------------------------------------------------------------------------
+// App Settings - SMTP, SendGrid, Twilio configurations (encrypted in prod)
+// Single row config pattern; key-value for flexibility
+// -----------------------------------------------------------------------------
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text // JSON or encrypted value
+  category  String   // email, sms, verification, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+// -----------------------------------------------------------------------------
+// Email Templates - Customizable email templates
+// -----------------------------------------------------------------------------
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  code        String   @unique  // e.g. email_verification, welcome, password_reset
+  name        String
+  subject     String
+  bodyHtml    String   @db.Text
+  bodyText    String?  @db.Text
+  variables   String?  // JSON: ["name", "otp", "link"]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([isActive])
+}
+
+// -----------------------------------------------------------------------------
+// Support Tickets - User can raise tickets, admin can respond
+// -----------------------------------------------------------------------------
+model SupportTicket {
+  id          String       @id @default(cuid())
+  ticketNo    String       @unique // Auto-generated ticket number
+  userId      String
+  subject     String
+  description String       @db.Text
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus @default(OPEN)
+  category    String?      // e.g. "billing", "technical", "general"
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  closedAt    DateTime?
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies TicketReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model TicketReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String   // Who replied (user or admin)
+  message   String   @db.Text
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([userId])
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+// =============================================================================
+// AUSTRALIA ACCOUNTANT CLIENT PORTAL - MULTI-ACCOUNT SYSTEM
+// One user can have multiple accounts (Individual, Company, Trust, Partnership)
+// Services are purchased per account, not per user
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Accounts - Core entity linking users to their business accounts
+// One user → many accounts
+// -----------------------------------------------------------------------------
+model Account {
+  id          String        @id @default(cuid())
+  userId      String        // Owner of the account
+  accountType AccountType
+  name        String        // Display name for the account
+  status      AccountStatus @default(DRAFT)
+  isDefault   Boolean       @default(false) // User's default account
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  individualProfile    IndividualProfile?
+  companyProfile       CompanyProfile?
+  trustProfile         TrustProfile?
+  partnershipProfile   PartnershipProfile?
+  accountServices      AccountService[]
+  legalConsents        LegalConsent[]
+  companyPartners      CompanyPartner[]
+  partnershipPartners  PartnershipPartner[]
+  trustPartners        TrustPartner[]
+
+  @@index([userId])
+  @@index([accountType])
+  @@index([status])
+}
+
+enum AccountType {
+  INDIVIDUAL
+  COMPANY
+  TRUST
+  PARTNERSHIP
+}
+
+enum AccountStatus {
+  DRAFT           // Initial creation, incomplete
+  PENDING_REVIEW  // Submitted for review
+  ACTIVE          // Approved and active
+  SUSPENDED       // Temporarily suspended
+  CLOSED          // Permanently closed
+}
+
+// -----------------------------------------------------------------------------
+// Individual Profile - Personal account details
+// TFN is AES-256-GCM encrypted at the application layer.
+// tfnHash stores HMAC-SHA256 for deterministic uniqueness lookups.
+// -----------------------------------------------------------------------------
+model IndividualProfile {
+  id              String    @id @default(cuid())
+  accountId       String    @unique
+  firstName       String
+  middleName      String?   // Common in Australia
+  lastName        String
+  dateOfBirth     DateTime?
+  tfn             String?   // Tax File Number - AES-256-GCM encrypted at application layer
+  tfnHash         String?   @unique // HMAC-SHA256 of plaintext TFN for uniqueness checks
+  address         String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  country         String    @default("Australia")
+  occupation      String?
+  employerName    String?
+
+  // ABN Section - Validated via ABN Lookup API (admin-configured)
+  hasAbn            Boolean   @default(false)
+  abn               String?   // Australian Business Number (11 digits)
+  abnRegisteredName String?   // Business name registered with ABN
+  abnStatus         String?   // "Active", "Cancelled", etc. from ABN Lookup
+
+  // GST Registration
+  gstRegistered     Boolean   @default(false)
+
+  // Medicare / Health Card
+  hasMedicalCard    Boolean   @default(false)
+
+  // Marital Status
+  // SINGLE, MARRIED, DE_FACTO, DIVORCED, WIDOWED, SEPARATED
+  maritalStatus     String?
+  spouseInAustralia Boolean?  // true = in AU, false = overseas, null = not applicable
+
+  // Spouse details (stored when overseas OR when in-AU before invitation accepted)
+  spouseName        String?   // Full name (used for AU spouse invitation)
+  spouseFirstName   String?   // First name (overseas spouse)
+  spouseLastName    String?   // Last name (overseas spouse)
+  spouseEmail       String?
+  spouseDob         DateTime?
+  spouseIncome      Decimal?  @db.Decimal(12, 2) // Annual income (overseas spouse)
+  spouseUserId      String?   // Linked user ID once spouse registers/approves (AU only)
+  spouseStatus      String?   // PENDING, APPROVED, REJECTED (for AU spouse invitation)
+
+  // Rental Property Income
+  hasRentalIncome   Boolean   @default(false)
+  rentalProperties  RentalProperty[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// Rental Property - Linked to Individual Profile
+// Multiple properties per individual; ownership % can vary (e.g., 50%, 100%)
+// Used for service fee calculation and tax return preparation.
+// -----------------------------------------------------------------------------
+model RentalProperty {
+  id                  String    @id @default(cuid())
+  individualProfileId String
+  address             String    // Full property address
+  suburb              String?
+  state               String?
+  postcode            String?
+  ownershipPercent    Decimal   @db.Decimal(5, 2) // e.g., 100.00, 50.00, 33.33
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  individualProfile IndividualProfile @relation(fields: [individualProfileId], references: [id], onDelete: Cascade)
+
+  @@index([individualProfileId])
+}
+
+// -----------------------------------------------------------------------------
+// Company Profile - Business entity details
+// -----------------------------------------------------------------------------
+model CompanyProfile {
+  id                  String    @id @default(cuid())
+  accountId           String    @unique
+  companyName         String
+  tradingName         String?
+  abn                 String?   // Australian Business Number
+  acn                 String?   // Australian Company Number
+
+  // TFN — AES-256-GCM encrypted at application layer (same as Individual)
+  tfn                 String?   // Company TFN - encrypted
+  tfnHash             String?   @unique // HMAC-SHA256 for uniqueness
+
+  // Registered Business Address
+  businessAddress     String?   // Street address
+  businessSuburb      String?
+  businessState       String?
+  businessPostcode    String?
+
+  // Postal Address (if different from business address)
+  postalSameAsBusiness Boolean  @default(true)
+  postalAddress       String?
+  postalSuburb        String?
+  postalState         String?
+  postalPostcode      String?
+
+  country             String    @default("Australia")
+
+  // Business / Industry Information
+  industry            String?   // Industry sector (e.g. "Construction", "IT", "Retail")
+  industrySector      String?   // More specific sub-sector
+  businessDescription String?   @db.Text // Short description of business activity
+
+  // Director count (self included — how many directors the company has)
+  directorCount       Int       @default(1)
+
+  // Self (account owner) director/shareholder flags
+  selfIsDirector      Boolean   @default(true)
+  selfIsShareholder   Boolean   @default(false)
+  selfShareCount      Int?      // Number of shares held by owner
+
+  registrationDate    DateTime?
+  financialYearEnd    String?   // e.g., "30 June"
+  gstRegistered       Boolean   @default(false)
+
+  // Legacy compat fields
+  suburb              String?
+  state               String?
+  postcode            String?
+  registeredAddress   String?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// Trust Profile - Trust entity details
+// TFN is AES-256-GCM encrypted at the application layer.
+// -----------------------------------------------------------------------------
+model TrustProfile {
+  id              String    @id @default(cuid())
+  accountId       String    @unique
+  trustName       String
+  trustType       TrustType
+  tfn             String?   // Trust TFN - AES-256-GCM encrypted at application layer
+  tfnHash         String?   // HMAC-SHA256 of plaintext TFN for lookups
+  abn             String?
+  establishedDate DateTime?
+  // Trustee details (JSON for flexibility - can be individual or corporate)
+  trusteeDetails  String?   @db.Text // JSON: {type, name, abn/acn, address}
+  // Beneficiaries (JSON array)
+  beneficiaries   String?   @db.Text // JSON: [{name, type, percentage}]
+  address         String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  country         String    @default("Australia")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+enum TrustType {
+  DISCRETIONARY   // Family Trust
+  UNIT            // Unit Trust
+  HYBRID          // Hybrid Trust
+  SMSF            // Self-Managed Super Fund
+  TESTAMENTARY    // Will Trust
+  OTHER
+}
+
+// -----------------------------------------------------------------------------
+// Partnership Profile - Partnership entity details
+// Partners are now managed via PartnershipPartner model for proper invitation flow
+// TFN is AES-256-GCM encrypted at the application layer.
+// -----------------------------------------------------------------------------
+model PartnershipProfile {
+  id              String    @id @default(cuid())
+  accountId       String    @unique
+  partnershipName String
+  tradingName     String?
+  abn             String?
+  tfn             String?   // AES-256-GCM encrypted at application layer
+  tfnHash         String?   @unique // HMAC-SHA256 of plaintext TFN for lookups
+  businessAddress String?
+  suburb          String?
+  state           String?
+  postcode        String?
+  country         String    @default("Australia")
+  industry        String?
+  establishedDate DateTime?
+
+  // Self (account owner) partner details
+  selfRole            String?   // e.g. "General Partner", "Managing Partner"
+  selfOwnershipPercent Decimal? @db.Decimal(5, 2) // Ownership %
+
+  // Legacy partners JSON field (deprecated - use PartnershipPartner model)
+  partners        String?   @db.Text // JSON: [{name, email, ownership%, role}] - kept for migration
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// Services - Admin-managed services that can be purchased per account
+// -----------------------------------------------------------------------------
+model Service {
+  id              String          @id @default(cuid())
+  code            String          @unique // e.g., "tax_return_individual"
+  name            String
+  description     String?         @db.Text
+  category        String?         // e.g., "Tax", "Accounting", "Advisory"
+  // Which account types can purchase this service (JSON array)
+  allowedTypes    String          // JSON: ["INDIVIDUAL", "COMPANY", "TRUST"]
+  // Pricing per account type (JSON object)
+  pricing         String          @db.Text // JSON: {INDIVIDUAL: 150, COMPANY: 300, ...}
+  isActive        Boolean         @default(true)
+  requiresConsent Boolean         @default(true) // Requires legal consent before activation
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  accountServices AccountService[]
+
+  @@index([isActive])
+  @@index([category])
+}
+
+// -----------------------------------------------------------------------------
+// Account Services - Services purchased by accounts
+// Links: account_id + service_id + status
+// -----------------------------------------------------------------------------
+model AccountService {
+  id              String              @id @default(cuid())
+  accountId       String
+  serviceId       String
+  status          ServiceStatus       @default(PENDING)
+  price           Decimal             @db.Decimal(10, 2)
+  financialYear   String?             // e.g., "2024-2025"
+  notes           String?             @db.Text
+  purchasedAt     DateTime            @default(now())
+  activatedAt     DateTime?
+  completedAt     DateTime?
+  
+  // Payment fields
+  paymentStatus   PaymentStatus       @default(UNPAID)
+  paymentMethod   String?             // e.g., "stripe", "manual"
+  transactionId   String?             // Stripe payment intent ID or checkout session ID
+  stripeSessionId String?             // Stripe checkout session ID
+  paymentAmount   Decimal?            @db.Decimal(10, 2) // Amount paid (including tax)
+  taxAmount       Decimal?            @db.Decimal(10, 2)
+  currency        String?             @default("AUD")
+  paidAt          DateTime?
+  paymentReceipt  String?             // Receipt URL from Stripe
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, serviceId, financialYear])
+  @@index([accountId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([transactionId])
+}
+
+enum PaymentStatus {
+  UNPAID          // Payment not initiated
+  PENDING         // Payment initiated but not completed
+  PAID            // Successfully paid
+  FAILED          // Payment failed
+  REFUNDED        // Fully refunded
+  PARTIAL_REFUND  // Partially refunded
+}
+
+enum ServiceStatus {
+  PENDING         // Purchased but not started
+  CONSENT_REQUIRED // Needs legal consent
+  IN_PROGRESS     // Work in progress
+  REVIEW          // Under review
+  COMPLETED       // Service completed
+  CANCELLED       // Cancelled
+}
+
+// -----------------------------------------------------------------------------
+// Company Partners - Partners associated with company accounts
+// Supports multi-partner approval workflow
+// -----------------------------------------------------------------------------
+model CompanyPartner {
+  id              String              @id @default(cuid())
+  accountId       String              // The company account
+  userId          String?             // Linked user (if registered)
+  email           String              // Partner's email
+  name            String?             // Partner's name
+  role            String?             // e.g., "Director", "Shareholder", "Director & Shareholder"
+  isDirector      Boolean             @default(false)
+  isShareholder   Boolean             @default(false)
+  shareCount      Int?                // Number of shares held
+  sharePercent    Decimal?            @db.Decimal(5, 2) // Legacy — kept for compat
+  ownershipPercent Decimal?           @db.Decimal(5, 2) // Legacy
+  status          PartnerStatus       @default(PENDING)
+  invitedAt       DateTime            @default(now())
+  respondedAt     DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([accountId, email])
+  @@index([accountId])
+  @@index([email])
+  @@index([userId])
+  @@index([status])
+}
+
+enum PartnerStatus {
+  PENDING   // Invitation sent
+  APPROVED  // Partner approved
+  REJECTED  // Partner rejected
+  REMOVED   // Removed from company
+}
+
+// -----------------------------------------------------------------------------
+// Partner Invitations - Secure invitation tokens for partner onboarding (Company)
+// -----------------------------------------------------------------------------
+model PartnerInvitation {
+  id              String    @id @default(cuid())
+  accountId       String    // Company account
+  email           String
+  name            String?
+  token           String    @unique // Secure invitation token (hashed)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// -----------------------------------------------------------------------------
+// Partnership Partners - Partners associated with partnership accounts
+// Supports multi-partner invitation and approval workflow
+// -----------------------------------------------------------------------------
+model PartnershipPartner {
+  id               String              @id @default(cuid())
+  accountId        String              // The partnership account
+  userId           String?             // Linked user (if registered)
+  email            String              // Partner's email
+  name             String?             // Partner's name
+  role             String?             // e.g., "General Partner", "Limited Partner"
+  ownershipPercent Decimal?            @db.Decimal(5, 2)
+  status           PartnerStatus       @default(PENDING)
+  invitedAt        DateTime            @default(now())
+  respondedAt      DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([accountId, email])
+  @@index([accountId])
+  @@index([email])
+  @@index([userId])
+  @@index([status])
+}
+
+// -----------------------------------------------------------------------------
+// Partnership Partner Invitations - Secure invitation tokens for partnership onboarding
+// -----------------------------------------------------------------------------
+model PartnershipInvitation {
+  id              String    @id @default(cuid())
+  accountId       String    // Partnership account
+  email           String
+  name            String?
+  role            String?   // Partner role
+  ownershipPercent Decimal? @db.Decimal(5, 2)
+  token           String    @unique // Secure invitation token (hashed)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([accountId])
+}
+
+// -----------------------------------------------------------------------------
+// Trust Partners - Trustees and Beneficiaries associated with trust accounts
+// Supports multi-party invitation and approval workflow
+// -----------------------------------------------------------------------------
+model TrustPartner {
+  id               String              @id @default(cuid())
+  accountId        String              // The trust account
+  userId           String?             // Linked user (if registered)
+  email            String              // Partner's email
+  name             String?             // Partner's name
+  role             String?             // e.g., "Trustee", "Beneficiary", "Appointor", "Guardian"
+  beneficiaryPercent Decimal?          @db.Decimal(5, 2) // For beneficiaries - distribution %
+  status           PartnerStatus       @default(PENDING)
+  invitedAt        DateTime            @default(now())
+  respondedAt      DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([accountId, email])
+  @@index([accountId])
+  @@index([email])
+  @@index([userId])
+  @@index([status])
+}
+
+// -----------------------------------------------------------------------------
+// Trust Partner Invitations - Secure invitation tokens for trust onboarding
+// -----------------------------------------------------------------------------
+model TrustInvitation {
+  id               String    @id @default(cuid())
+  accountId        String    // Trust account
+  email            String
+  name             String?
+  role             String?   // Trustee/Beneficiary role
+  beneficiaryPercent Decimal? @db.Decimal(5, 2)
+  token            String    @unique // Secure invitation token (hashed)
+  expiresAt        DateTime
+  acceptedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([accountId])
+}
+
+// -----------------------------------------------------------------------------
+// Spouse Invitations - For Individual accounts when spouse is in Australia
+// Reuses partner invitation pattern for spouse linking
+// -----------------------------------------------------------------------------
+model SpouseInvitation {
+  id              String    @id @default(cuid())
+  accountId       String    // Individual account
+  email           String
+  name            String?
+  token           String    @unique // Secure invitation token (hashed)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@index([expiresAt])
+  @@index([accountId])
+}
+
+// -----------------------------------------------------------------------------
+// Legal Consents - Audit trail for authority and consent acceptance
+// Linked to account for SOC 2 compliance
+// -----------------------------------------------------------------------------
+model LegalConsent {
+  id              String      @id @default(cuid())
+  accountId       String
+  userId          String      // Who accepted
+  consentType     ConsentType
+  documentVersion String?     // Version of the document accepted
+  signatureData   String?     @db.Text // Base64 encoded signature image
+  signatureType   String?     // "draw" or "type"
+  signedName      String?     // Typed name if type signature
+  ipAddress       String?
+  userAgent       String?     @db.Text
+  acceptedAt      DateTime    @default(now())
+  createdAt       DateTime    @default(now())
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([userId])
+  @@index([consentType])
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE    // Legacy — now handled at registration via User model
+  PRIVACY_POLICY      // Legacy — now handled at registration via User model
+  TAX_AGENT_AUTHORITY
+  ENGAGEMENT_LETTER
+  DATA_PROCESSING     // Legacy — now handled at registration via User model
+}
+
+// =============================================================================
+// CMS - DYNAMIC WEBSITE CONTENT MANAGEMENT
+// Admin can manage homepage sections, create pages, and control website content
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Pages - Dynamic pages that admin can create
+// -----------------------------------------------------------------------------
+model Page {
+  id          String      @id @default(cuid())
+  slug        String      @unique // URL slug e.g., "about", "services", "contact"
+  title       String
+  description String?     @db.Text // Meta description for SEO
+  content     String      @db.Text // HTML/Rich text content
+  metaTitle   String?     // SEO meta title
+  metaKeywords String?    // SEO keywords
+  isPublished Boolean     @default(false)
+  showInNav   Boolean     @default(false) // Show in navigation menu
+  navOrder    Int         @default(0) // Order in navigation
+  template    String?     @default("default") // Template to use for rendering
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([showInNav])
+}
+
+// -----------------------------------------------------------------------------
+// Home Sections - Configurable homepage sections
+// Each section type has specific content structure
+// -----------------------------------------------------------------------------
+model HomeSection {
+  id          String            @id @default(cuid())
+  sectionType HomeSectionType
+  title       String?
+  subtitle    String?
+  content     String?           @db.Text // JSON content specific to section type
+  isActive    Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([sectionType])
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+enum HomeSectionType {
+  HERO              // Hero banner with title, subtitle, CTA buttons
+  ABOUT             // About section with image and text
+  STATISTICS        // Stats counters
+  SERVICES          // Services grid
+  AUDIENCE          // Who we help section
+  TESTIMONIALS      // Client testimonials
+  CONTACT_FORM      // Contact/Get started form
+  LEADERSHIP        // Team/leadership section
+  CUSTOM            // Custom HTML content
+}
+
+// -----------------------------------------------------------------------------
+// Testimonials - Client testimonials managed by admin
+// -----------------------------------------------------------------------------
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?  // e.g., "CEO, TechStart Solutions"
+  content   String   @db.Text
+  rating    Int      @default(5) // 1-5 stars
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+// -----------------------------------------------------------------------------
+// Service Cards - Homepage service cards (different from purchasable services)
+// These are for display on the public website
+// -----------------------------------------------------------------------------
+model ServiceCard {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  icon        String?  // Emoji or icon class
+  linkUrl     String?  // Optional link to service page
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+// -----------------------------------------------------------------------------
+// Navigation Menu - Admin managed navigation links
+// -----------------------------------------------------------------------------
+model NavMenuItem {
+  id        String   @id @default(cuid())
+  label     String
+  url       String   // Internal path or external URL
+  target    String   @default("_self") // _self, _blank
+  parentId  String?  // For nested menus
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([isActive])
+  @@index([sortOrder])
+}

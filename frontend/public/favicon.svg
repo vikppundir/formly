@@ -1,0 +1,44 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E5097F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#312966;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F4F6F9;stop-opacity:0.95" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Rounded square background with gradient -->
+  <rect width="64" height="64" rx="14" fill="url(#bgGradient)"/>
+  
+  <!-- JAP Text with modern bold styling - centered and well-positioned -->
+  <g filter="url(#glow)">
+    <text 
+      x="32" 
+      y="38" 
+      font-family="Arial, 'Helvetica Neue', sans-serif" 
+      font-size="28" 
+      font-weight="900" 
+      fill="url(#textGradient)"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      letter-spacing="-1"
+    >JAP</text>
+  </g>
+  
+  <!-- Accent underline -->
+  <line x1="18" y1="44" x2="46" y2="44" stroke="url(#textGradient)" stroke-width="2.5" stroke-linecap="round" opacity="0.9"/>
+  
+  <!-- Subtle border accent -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+</svg>
