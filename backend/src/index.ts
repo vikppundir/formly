@@ -69,18 +69,18 @@ async function build() {
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   });
-  const corsOrigins = (env.CORS_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
+  const rawCorsOrigin = (env.CORS_ORIGIN || "").trim();
+  const corsOrigins = rawCorsOrigin.split(",").map((o) => o.trim()).filter(Boolean);
+  const allowAllOrigins = rawCorsOrigin === "*" || corsOrigins.length === 0;
   await app.register(cors, {
     origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean | string) => void) => {
       // Allow requests with no origin (server-to-server, curl, etc.)
       if (!origin) return cb(null, true);
-      // If CORS_ORIGIN is configured, check against allowed list
-      if (corsOrigins.length > 0) {
-        if (corsOrigins.includes(origin)) return cb(null, origin);
-        return cb(new Error("CORS not allowed"), false);
-      }
-      // Development: allow all origins by reflecting the origin
-      return cb(null, origin);
+      // If CORS_ORIGIN is "*" or empty, reflect any origin (dev/demo mode)
+      if (allowAllOrigins) return cb(null, origin);
+      // Check against explicit allowed list
+      if (corsOrigins.includes(origin)) return cb(null, origin);
+      return cb(new Error("CORS not allowed"), false);
     },
     credentials: true,
   });
