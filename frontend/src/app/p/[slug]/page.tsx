@@ -91,8 +91,8 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "bg-[#2E2A5E]/95 backdrop-blur-md py-3 shadow-xl" : "bg-white dark:bg-[#2E2A5E] py-4 shadow-md"}`}>
         <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-lg bg-[#E91E8C] flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
-              J
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#312966] flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+              F
             </div>
             <span className={`text-lg font-bold tracking-tight ${isScrolled ? "text-white" : "text-[#2E2A5E] dark:text-white"}`}>
               FORMLY
@@ -142,7 +142,7 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#E91E8C] flex items-center justify-center text-white font-bold shadow-lg">J</div>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#312966] flex items-center justify-center text-white font-bold shadow-lg">F</div>
               <span className="text-lg font-bold text-white">FORMLY</span>
             </div>
             <div className="text-xs text-slate-400 uppercase tracking-wider">

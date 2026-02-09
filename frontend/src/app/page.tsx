@@ -264,21 +264,12 @@ export default function PublicHomePage() {
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "bg-primary-navy/95 backdrop-blur-md py-3 shadow-xl" : "bg-transparent py-4 sm:py-6"}`}>
         <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <img 
-              src="/images/Logo-CTC.jpg" 
-              alt="Formly" 
-              className="h-8 sm:h-10 md:h-12 object-contain group-hover:scale-110 transition-transform"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = target.nextElementSibling as HTMLElement;
-                if (fallback) fallback.style.display = 'flex';
-              }}
-            />
-            <div className={`items-center gap-2 hidden ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`} style={{ display: 'none' }}>
-              <div className="w-9 h-9 rounded-lg bg-accent-pink flex items-center justify-center text-white font-bold text-lg shadow-lg">F</div>
-              <span className="text-lg font-bold tracking-tight">FORMLY</span>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-accent-pink to-[#312966] flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+              F
             </div>
+            <span className={`text-lg sm:text-xl font-bold tracking-tight ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`}>
+              Formly
+            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -819,11 +810,12 @@ export default function PublicHomePage() {
           <div className="grid lg:grid-cols-4 gap-12 mb-12">
             <div className="lg:col-span-2">
               <div className="mb-6 flex items-center gap-3 group cursor-default">
-                <img 
-                  src="/images/Logo-CTC.jpg" 
-                  alt="Formly" 
-                  className="h-10 sm:h-12 md:h-14 object-contain group-hover:scale-110 transition-transform"
-                />
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent-pink to-[#312966] flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
+                  F
+                </div>
+                <span className="text-xl sm:text-2xl font-bold text-clean-white tracking-tight">
+                  Formly
+                </span>
               </div>
               <p className="text-slate-blue max-w-md text-sm leading-relaxed mb-8 italic border-l-4 border-accent-pink pl-4">
                 "Built to protect your business, optimise your tax position, and keep you compliant—so you can grow with confidence."

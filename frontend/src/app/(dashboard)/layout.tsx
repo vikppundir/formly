@@ -133,7 +133,7 @@ function SidebarContent({
     <>
       <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-slate-800/50">
         <Link href="/dashboard" className="flex items-center gap-3 min-w-0" onClick={onNavClick}>
-          <div className="w-9 h-9 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#312966] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
             F
           </div>
           <span className="font-semibold text-white text-lg tracking-tight truncate">Formly Admin</span>
