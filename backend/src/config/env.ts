@@ -15,6 +15,7 @@ const envSchema = z.object({
   JWT_REFRESH_TTL: z.string().default("7d"),
   COOKIE_DOMAIN: z.string().optional(),
   COOKIE_SECURE: z.string().transform((v) => v === "true").default("true"),
+  COOKIE_SAMESITE: z.enum(["strict", "lax", "none"]).default("lax"),
   CORS_ORIGIN: z.string().optional().default(""),
   FIELD_ENCRYPTION_KEY: z.string().min(32, "FIELD_ENCRYPTION_KEY must be at least 32 characters for AES-256").optional(),
   RATE_LIMIT_AUTH_WINDOW_MS: z.string().transform(Number).default("900000"),

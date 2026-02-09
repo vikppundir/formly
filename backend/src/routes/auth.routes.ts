@@ -16,7 +16,7 @@ const REFRESH_COOKIE = "refresh_token";
 const COOKIE_OPTS = {
   httpOnly: true,
   secure: env.COOKIE_SECURE,
-  sameSite: "lax" as const,
+  sameSite: env.COOKIE_SAMESITE as "strict" | "lax" | "none",
   path: "/",
   ...(env.COOKIE_DOMAIN && { domain: env.COOKIE_DOMAIN }),
 };
