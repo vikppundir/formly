@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * User dashboard layout - Beautiful modern design with JAP branding colors.
+ * User dashboard layout - Beautiful modern design with Formly branding colors.
  * Pink: #E91E8C, Navy: #2E2A5E
  * Includes multi-account switcher and account-specific navigation.
  */
@@ -246,11 +246,11 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#E91E8C]/30">
-              J
+              F
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg tracking-tight">JAP</h1>
-              <p className="text-white/50 text-xs">In-depth Perfect Analysis</p>
+              <h1 className="text-white font-bold text-lg tracking-tight">Formly</h1>
+              <p className="text-white/50 text-xs">Smart Accounting Platform</p>
             </div>
           </div>
         </div>
@@ -326,11 +326,11 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-bold text-lg">
-                J
+                F
               </div>
               <div>
-                <h1 className="text-white font-bold text-lg tracking-tight">JAP</h1>
-                <p className="text-white/50 text-xs">In-depth Perfect Analysis</p>
+                <h1 className="text-white font-bold text-lg tracking-tight">Formly</h1>
+                <p className="text-white/50 text-xs">Smart Accounting Platform</p>
               </div>
             </div>
             <button

@@ -97,7 +97,7 @@ export function createEmailService(prisma: PrismaClient) {
         // Get email provider settings
         const [provider, appName] = await Promise.all([
           settingsRepo.getValue("email_provider", "smtp"),
-          settingsRepo.getValue("app_name", "Jab Admin"),
+          settingsRepo.getValue("app_name", "Formly"),
         ]);
 
         // Add app name to variables
@@ -113,7 +113,7 @@ export function createEmailService(prisma: PrismaClient) {
         const fromNameKey = provider === "sendgrid" ? "sendgrid_from_name" : "smtp_from_name";
         const [from, fromName] = await Promise.all([
           settingsRepo.getValue(fromKey),
-          settingsRepo.getValue(fromNameKey, "Jab Admin"),
+          settingsRepo.getValue(fromNameKey, "Formly"),
         ]);
 
         if (!from) {
@@ -156,7 +156,7 @@ export function createEmailService(prisma: PrismaClient) {
             await settingsRepo.getValue("email_provider") === "sendgrid"
               ? "sendgrid_from_name"
               : "smtp_from_name",
-            "Jab Admin"
+            "Formly"
           ),
         ]);
 

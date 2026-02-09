@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.app_name || ""}
                 onChange={(e) => updateSetting("app_name", e.target.value)}
-                placeholder="JAP Accountants"
+                placeholder="Formly"
                 className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
               />
             </div>

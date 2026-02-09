@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Public Homepage - Exact copy from JAP Accountants
+ * Public Homepage - Formly Accounting Platform
  * Shows hero with video background, about, services, testimonials, and contact sections
  */
 
@@ -220,7 +220,7 @@ export default function PublicHomePage() {
   function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     setActiveService(null);
-    setToast("Thank you! JAP Accountants will contact you within one business day.");
+    setToast("Thank you! Formly will contact you within one business day.");
     setTimeout(() => setToast(null), 4000);
   }
 
@@ -250,12 +250,12 @@ export default function PublicHomePage() {
   ];
 
   const testimonials = [
-    { name: "Sarah Mitchell", role: "CEO, TechStart Solutions", content: "JAP Accountants transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional and always responsive!", rating: 5, image: "https://i.pravatar.cc/150?img=47" },
-    { name: "Michael Chen", role: "Property Investor", content: "As a property investor, tax compliance was overwhelming. JAP Accountants simplified everything and helped me maximize deductions. Their team is exceptional!", rating: 5, image: "https://i.pravatar.cc/150?img=12" },
-    { name: "Emma Thompson", role: "Small Business Owner", content: "The cloud accounting setup was seamless. I can now focus on growing my business while JAP handles all the financial complexities. Best decision ever!", rating: 5, image: "https://i.pravatar.cc/150?img=45" },
-    { name: "David Rodriguez", role: "Freelance Consultant", content: "From BAS lodgements to tax optimization, JAP Accountants has been a game-changer. They're always available when I need them. 98.4% response rate is real!", rating: 5, image: "https://i.pravatar.cc/150?img=33" },
-    { name: "Lisa Anderson", role: "E-commerce Entrepreneur", content: "Government grants assistance was outstanding. JAP helped us secure significant funding and navigate all compliance requirements. Truly grateful!", rating: 5, image: "https://i.pravatar.cc/150?img=20" },
-    { name: "James Wilson", role: "Startup Founder", content: "Starting a business is stressful enough. Having JAP Accountants handle all financial aspects gave me peace of mind. Professional, efficient, and reliable.", rating: 5, image: "https://i.pravatar.cc/150?img=51" }
+    { name: "Sarah Mitchell", role: "CEO, TechStart Solutions", content: "Formly transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional and always responsive!", rating: 5, image: "https://i.pravatar.cc/150?img=47" },
+    { name: "Michael Chen", role: "Property Investor", content: "As a property investor, tax compliance was overwhelming. Formly simplified everything and helped me maximize deductions. Their team is exceptional!", rating: 5, image: "https://i.pravatar.cc/150?img=12" },
+    { name: "Emma Thompson", role: "Small Business Owner", content: "The cloud accounting setup was seamless. I can now focus on growing my business while Formly handles all the financial complexities. Best decision ever!", rating: 5, image: "https://i.pravatar.cc/150?img=45" },
+    { name: "David Rodriguez", role: "Freelance Consultant", content: "From BAS lodgements to tax optimization, Formly has been a game-changer. They're always available when I need them. 98.4% response rate is real!", rating: 5, image: "https://i.pravatar.cc/150?img=33" },
+    { name: "Lisa Anderson", role: "E-commerce Entrepreneur", content: "Government grants assistance was outstanding. Formly helped us secure significant funding and navigate all compliance requirements. Truly grateful!", rating: 5, image: "https://i.pravatar.cc/150?img=20" },
+    { name: "James Wilson", role: "Startup Founder", content: "Starting a business is stressful enough. Having Formly handle all financial aspects gave me peace of mind. Professional, efficient, and reliable.", rating: 5, image: "https://i.pravatar.cc/150?img=51" }
   ];
 
   return (
@@ -266,7 +266,7 @@ export default function PublicHomePage() {
           <Link href="/" className="flex items-center gap-2 group">
             <img 
               src="/images/Logo-CTC.jpg" 
-              alt="JAP Accountants" 
+              alt="Formly" 
               className="h-8 sm:h-10 md:h-12 object-contain group-hover:scale-110 transition-transform"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
@@ -276,8 +276,8 @@ export default function PublicHomePage() {
               }}
             />
             <div className={`items-center gap-2 hidden ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`} style={{ display: 'none' }}>
-              <div className="w-9 h-9 rounded-lg bg-accent-pink flex items-center justify-center text-white font-bold text-lg shadow-lg">J</div>
-              <span className="text-lg font-bold tracking-tight">JAP ACCOUNTANTS</span>
+              <div className="w-9 h-9 rounded-lg bg-accent-pink flex items-center justify-center text-white font-bold text-lg shadow-lg">F</div>
+              <span className="text-lg font-bold tracking-tight">FORMLY</span>
             </div>
           </Link>
 
@@ -402,14 +402,14 @@ export default function PublicHomePage() {
             <div className="lg:w-1/2">
               <span className="inline-flex items-center gap-2 text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
                 <span className="w-1.5 h-1.5 bg-accent-pink rounded-full animate-pulse" />
-                About JAP Accountants
+                About Formly
               </span>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-primary-navy dark:text-clean-white leading-[1.1]">
                 We don't just prepare accounts.{' '}
                 <span className="text-accent-pink">We protect your business.</span>
               </h2>
               <p className="text-dark-charcoal dark:text-slate-300 text-base leading-relaxed mb-6">
-                At JAP Accountants, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions. Based in Victoria, our team provides end-to-end accounting and tax services tailored for individuals and SMEs across Australia.
+                At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions. Based in Victoria, our team provides end-to-end accounting and tax services tailored for individuals and SMEs across Australia.
               </p>
               <p className="text-dark-charcoal/70 dark:text-slate-400 leading-relaxed mb-8 text-sm">
                 We combine modern cloud accounting tools with practical business insights to simplify your finances, ensure compliance, and help you plan ahead with clarity and confidence.
@@ -621,10 +621,10 @@ export default function PublicHomePage() {
                 </h4>
                 <p className="text-xs font-semibold uppercase tracking-wider text-accent-pink mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-                  Director, JAP Accountants
+                  Director, Formly
                 </p>
                 <p className="text-dark-charcoal/70 dark:text-slate-400 text-sm leading-relaxed italic mb-6 border-l-4 border-accent-pink pl-4">
-                  "At JAP Accountants, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions."
+                  "At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions."
                 </p>
                 <div className="flex items-center gap-4 p-4 rounded-lg bg-clean-white dark:bg-primary-navy/50 hover:bg-accent-pink/10 transition-all">
                   <div className="p-3 bg-accent-pink/10 rounded-lg text-lg">💼</div>
@@ -683,7 +683,7 @@ export default function PublicHomePage() {
               What Our <span className="text-accent-pink">Clients</span> Say
             </h2>
             <p className="text-dark-charcoal/70 dark:text-slate-300 max-w-2xl mx-auto text-sm">
-              Real feedback from businesses and individuals who trust JAP Accountants
+              Real feedback from businesses and individuals who trust Formly
             </p>
           </div>
 
@@ -821,7 +821,7 @@ export default function PublicHomePage() {
               <div className="mb-6 flex items-center gap-3 group cursor-default">
                 <img 
                   src="/images/Logo-CTC.jpg" 
-                  alt="JAP Accountants" 
+                  alt="Formly" 
                   className="h-10 sm:h-12 md:h-14 object-contain group-hover:scale-110 transition-transform"
                 />
               </div>
@@ -894,7 +894,7 @@ export default function PublicHomePage() {
           </div>
           <div className="pt-8 border-t border-slate-blue/20 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-blue font-medium uppercase tracking-wider">
             <div className="hover:text-accent-pink transition-colors cursor-default">
-              ©2026 JAP ACCOUNTANTS — DIRECTOR AMIT DEOL
+              ©2026 FORMLY — DIRECTOR AMIT DEOL
             </div>
             <div className="flex gap-8">
               <button className="hover:text-accent-pink transition-colors relative group">

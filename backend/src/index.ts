@@ -105,7 +105,7 @@ async function build() {
   await registerForgotPasswordRoutes(app, prisma);
 
   app.get("/", (_req, reply) =>
-    reply.send({ name: "Jab API", version: "1.0.0", health: "/health", docs: "API base" })
+    reply.send({ name: "Formly API", version: "1.0.0", health: "/health", docs: "API base" })
   );
   app.get("/health", (_req, reply) => reply.send({ ok: true }));
 

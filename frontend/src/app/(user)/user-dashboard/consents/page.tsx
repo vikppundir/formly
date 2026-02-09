@@ -32,7 +32,7 @@ interface ConsentCheck {
 const CONSENT_INFO: Record<ConsentType, { title: string; description: string }> = {
   TAX_AGENT_AUTHORITY: {
     title: "Tax Agent Authority",
-    description: "I authorise JAP Accountants to act as my registered tax agent and to communicate with the Australian Taxation Office (ATO) on my behalf.",
+    description: "I authorise Formly to act as my registered tax agent and to communicate with the Australian Taxation Office (ATO) on my behalf.",
   },
   ENGAGEMENT_LETTER: {
     title: "Engagement Letter",

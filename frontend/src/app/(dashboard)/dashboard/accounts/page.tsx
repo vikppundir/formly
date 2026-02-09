@@ -354,7 +354,7 @@ export default function AccountsPage() {
           <div class="section-title">Tax Agent Details</div>
           <div class="field-row">
             <span class="field-label">Tax Agent Name:</span>
-            <span class="field-value">JAP Accountants Pty Ltd</span>
+            <span class="field-value">Formly Pty Ltd</span>
           </div>
           <div class="field-row">
             <span class="field-label">Tax Agent Number:</span>
@@ -368,7 +368,7 @@ export default function AccountsPage() {
 
         <div class="authority-text">
           <p><strong>AUTHORITY:</strong></p>
-          <p>I, <strong>${clientName}</strong>, hereby authorise JAP Accountants Pty Ltd to:</p>
+          <p>I, <strong>${clientName}</strong>, hereby authorise Formly Pty Ltd to:</p>
           <ul>
             <li>Act as my registered tax agent with the Australian Taxation Office (ATO)</li>
             <li>Lodge tax returns and other documents on my behalf</li>
@@ -388,7 +388,7 @@ export default function AccountsPage() {
         <div class="signature-section">
           <div class="section-title">Client Signature & Declaration</div>
           <div class="signature-box">
-            <p>I declare that the information provided is true and correct, and I authorise JAP Accountants to act as my tax agent.</p>
+            <p>I declare that the information provided is true and correct, and I authorise Formly to act as my tax agent.</p>
             
             ${consent.signatureType === "draw" && consent.signatureData 
               ? `<img src="${consent.signatureData}" alt="Signature" class="signature-image" />`

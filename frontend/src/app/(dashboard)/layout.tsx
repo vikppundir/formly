@@ -134,9 +134,9 @@ function SidebarContent({
       <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-slate-800/50">
         <Link href="/dashboard" className="flex items-center gap-3 min-w-0" onClick={onNavClick}>
           <div className="w-9 h-9 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            J
+            F
           </div>
-          <span className="font-semibold text-white text-lg tracking-tight truncate">Jab Admin</span>
+          <span className="font-semibold text-white text-lg tracking-tight truncate">Formly Admin</span>
         </Link>
         {onClose && (
           <button

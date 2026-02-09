@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * User Dashboard - Beautiful modern design with JAP branding.
+ * User Dashboard - Beautiful modern design with Formly branding.
  * Colors: Pink #E91E8C, Navy #2E2A5E
  * Shows profile completion banner, account status, and pending partner requests.
  */

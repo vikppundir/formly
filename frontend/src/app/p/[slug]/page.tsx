@@ -95,7 +95,7 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
               J
             </div>
             <span className={`text-lg font-bold tracking-tight ${isScrolled ? "text-white" : "text-[#2E2A5E] dark:text-white"}`}>
-              JAP ACCOUNTANTS
+              FORMLY
             </span>
           </Link>
 
@@ -143,10 +143,10 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-[#E91E8C] flex items-center justify-center text-white font-bold shadow-lg">J</div>
-              <span className="text-lg font-bold text-white">JAP ACCOUNTANTS</span>
+              <span className="text-lg font-bold text-white">FORMLY</span>
             </div>
             <div className="text-xs text-slate-400 uppercase tracking-wider">
-              ©2026 JAP Accountants — All Rights Reserved
+              ©2026 Formly — All Rights Reserved
             </div>
           </div>
         </div>
