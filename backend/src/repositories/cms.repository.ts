@@ -296,9 +296,9 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           sectionType: "ABOUT" as HomeSectionType,
           title: "We don't just prepare accounts. We protect your business.",
-          subtitle: "About JAP Accountants",
+          subtitle: "About Formly",
           content: JSON.stringify({
-            description: "At JAP Accountants, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions. Based in Victoria, our team provides end-to-end accounting and tax services tailored for individuals and SMEs across Australia.",
+            description: "At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions. Based in Victoria, our team provides end-to-end accounting and tax services tailored for individuals and SMEs across Australia.",
             quote: "We optimise your tax position, and keep you compliant—so you can grow with confidence.",
             features: [
               { label: "100%", text: "ATO Ready", icon: "✓" },
@@ -367,12 +367,12 @@ export function createCmsRepository(prisma: PrismaClient) {
         },
         {
           sectionType: "LEADERSHIP" as HomeSectionType,
-          title: "Amit Deol",
-          subtitle: "Director, JAP Accountants",
+          title: "Formly Team",
+          subtitle: "Leadership, Formly",
           content: JSON.stringify({
-            quote: "At JAP Accountants, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions.",
-            image: "https://picsum.photos/300/300?grayscale",
-            verification: "AMIT KAUR DEOL",
+            quote: "At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions.",
+            image: "",
+            verification: "SOC 2 COMPLIANT • AES-256 ENCRYPTED",
           }),
           sortOrder: 8,
         },
@@ -385,7 +385,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "Sarah Mitchell",
           role: "CEO, TechStart Solutions",
-          content: "JAP Accountants transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional and always responsive!",
+          content: "Formly transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional and always responsive!",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=47",
           sortOrder: 1,
@@ -393,7 +393,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "Michael Chen",
           role: "Property Investor",
-          content: "As a property investor, tax compliance was overwhelming. JAP Accountants simplified everything and helped me maximize deductions. Their team is exceptional!",
+          content: "As a property investor, tax compliance was overwhelming. Formly simplified everything and helped me maximize deductions. Their team is exceptional!",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=12",
           sortOrder: 2,
@@ -401,7 +401,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "Emma Thompson",
           role: "Small Business Owner",
-          content: "The cloud accounting setup was seamless. I can now focus on growing my business while JAP handles all the financial complexities. Best decision ever!",
+          content: "The cloud accounting setup was seamless. I can now focus on growing my business while Formly handles all the financial complexities. Best decision ever!",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=45",
           sortOrder: 3,
@@ -409,7 +409,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "David Rodriguez",
           role: "Freelance Consultant",
-          content: "From BAS lodgements to tax optimization, JAP Accountants has been a game-changer. They're always available when I need them. 98.4% response rate is real!",
+          content: "From BAS lodgements to tax optimization, Formly has been a game-changer. They're always available when I need them. 98.4% response rate is real!",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=33",
           sortOrder: 4,
@@ -417,7 +417,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "Lisa Anderson",
           role: "E-commerce Entrepreneur",
-          content: "Government grants assistance was outstanding. JAP helped us secure significant funding and navigate all compliance requirements. Truly grateful!",
+          content: "Government grants assistance was outstanding. Formly helped us secure significant funding and navigate all compliance requirements. Truly grateful!",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=20",
           sortOrder: 5,
@@ -425,7 +425,7 @@ export function createCmsRepository(prisma: PrismaClient) {
         {
           name: "James Wilson",
           role: "Startup Founder",
-          content: "Starting a business is stressful enough. Having JAP Accountants handle all financial aspects gave me peace of mind. Professional, efficient, and reliable.",
+          content: "Starting a business is stressful enough. Having Formly handle all financial aspects gave me peace of mind. Professional, efficient, and reliable.",
           rating: 5,
           imageUrl: "https://i.pravatar.cc/150?img=51",
           sortOrder: 6,

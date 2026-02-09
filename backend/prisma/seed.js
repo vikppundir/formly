@@ -214,10 +214,10 @@ const DEFAULT_SETTINGS = [
     { key: "smtp_user", value: "", category: "email" },
     { key: "smtp_pass", value: "", category: "email" },
     { key: "smtp_from_email", value: "", category: "email" },
-    { key: "smtp_from_name", value: "Jab Admin", category: "email" },
+    { key: "smtp_from_name", value: "Formly", category: "email" },
     { key: "sendgrid_api_key", value: "", category: "email" },
     { key: "sendgrid_from_email", value: "", category: "email" },
-    { key: "sendgrid_from_name", value: "Jab Admin", category: "email" },
+    { key: "sendgrid_from_name", value: "Formly", category: "email" },
     // SMS provider config (Twilio)
     { key: "sms_provider", value: "twilio", category: "sms" },
     { key: "twilio_account_sid", value: "", category: "sms" },
@@ -229,10 +229,10 @@ const DEFAULT_SETTINGS = [
     { key: "otp_expiry_minutes", value: "10", category: "verification" },
     { key: "otp_length", value: "6", category: "verification" },
     // App settings
-    { key: "app_name", value: "JAP Accountants", category: "app" },
+    { key: "app_name", value: "Formly", category: "app" },
     // Website settings
     { key: "website_logo", value: "", category: "website" },
-    { key: "website_tagline", value: "In-depth Perfect Analysis", category: "website" },
+    { key: "website_tagline", value: "Protect. Optimise. Grow.", category: "website" },
     { key: "contact_email", value: "", category: "website" },
     { key: "contact_phone", value: "", category: "website" },
     { key: "contact_address", value: "", category: "website" },
@@ -246,7 +246,7 @@ const DEFAULT_SETTINGS = [
     { key: "support_type", value: "24/7", category: "support" }, // "working_hours" or "24/7"
     { key: "support_hours_start", value: "09:00", category: "support" },
     { key: "support_hours_end", value: "18:00", category: "support" },
-    { key: "support_timezone", value: "Asia/Kolkata", category: "support" },
+    { key: "support_timezone", value: "Australia/Melbourne", category: "support" },
     { key: "support_days", value: "Mon,Tue,Wed,Thu,Fri", category: "support" }, // comma-separated
     { key: "support_email", value: "", category: "support" },
     { key: "support_phone", value: "", category: "support" },

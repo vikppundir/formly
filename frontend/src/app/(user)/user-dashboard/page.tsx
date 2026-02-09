@@ -116,8 +116,8 @@ export default function UserDashboardPage() {
   const { user } = useAuth();
   const { currentAccount, accounts, loading: accountLoading, refresh } = useAccount();
   const [settings, setSettings] = useState<WebsiteSettings>({
-    app_name: "JAP Accountants",
-    website_tagline: "In-depth Perfect Analysis",
+    app_name: "Formly",
+    website_tagline: "Protect. Optimise. Grow.",
     contact_email: "",
     contact_phone: "",
   });

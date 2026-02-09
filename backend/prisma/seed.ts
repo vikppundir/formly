@@ -225,10 +225,10 @@ const DEFAULT_SETTINGS = [
   { key: "smtp_user", value: "", category: "email" },
   { key: "smtp_pass", value: "", category: "email" },
   { key: "smtp_from_email", value: "", category: "email" },
-  { key: "smtp_from_name", value: "Jab Admin", category: "email" },
+  { key: "smtp_from_name", value: "Formly", category: "email" },
   { key: "sendgrid_api_key", value: "", category: "email" },
   { key: "sendgrid_from_email", value: "", category: "email" },
-  { key: "sendgrid_from_name", value: "Jab Admin", category: "email" },
+  { key: "sendgrid_from_name", value: "Formly", category: "email" },
   // SMS provider config (Twilio)
   { key: "sms_provider", value: "twilio", category: "sms" },
   { key: "twilio_account_sid", value: "", category: "sms" },
@@ -240,10 +240,10 @@ const DEFAULT_SETTINGS = [
   { key: "otp_expiry_minutes", value: "10", category: "verification" },
   { key: "otp_length", value: "6", category: "verification" },
   // App settings
-  { key: "app_name", value: "JAP Accountants", category: "app" },
+  { key: "app_name", value: "Formly", category: "app" },
   // Website settings
   { key: "website_logo", value: "", category: "website" },
-  { key: "website_tagline", value: "In-depth Perfect Analysis", category: "website" },
+  { key: "website_tagline", value: "Protect. Optimise. Grow.", category: "website" },
   { key: "contact_email", value: "", category: "website" },
   { key: "contact_phone", value: "", category: "website" },
   { key: "contact_address", value: "", category: "website" },
@@ -257,7 +257,7 @@ const DEFAULT_SETTINGS = [
   { key: "support_type", value: "24/7", category: "support" }, // "working_hours" or "24/7"
   { key: "support_hours_start", value: "09:00", category: "support" },
   { key: "support_hours_end", value: "18:00", category: "support" },
-  { key: "support_timezone", value: "Asia/Kolkata", category: "support" },
+  { key: "support_timezone", value: "Australia/Melbourne", category: "support" },
   { key: "support_days", value: "Mon,Tue,Wed,Thu,Fri", category: "support" }, // comma-separated
   { key: "support_email", value: "", category: "support" },
   { key: "support_phone", value: "", category: "support" },
@@ -387,12 +387,12 @@ async function main() {
     {
       slug: "terms-of-service",
       title: "Terms of Service",
-      description: "Terms and conditions for using JAP Accountants services.",
+      description: "Terms and conditions for using Formly services.",
       content: `<h2>1. Acceptance of Terms</h2>
-<p>By accessing and using the JAP Accountants platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
+<p>By accessing and using the Formly platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree, please do not use our services.</p>
 
 <h2>2. Services Provided</h2>
-<p>JAP Accountants provides accounting, taxation, and advisory services through a secure online platform. Service scope is defined in the relevant Engagement Letter.</p>
+<p>Formly provides accounting, taxation, and advisory services through a secure online platform. Service scope is defined in the relevant Engagement Letter.</p>
 
 <h2>3. User Responsibilities</h2>
 <ul>
@@ -406,7 +406,7 @@ async function main() {
 <p>Your use of the Service is also governed by our <a href="/p/privacy-policy">Privacy Policy</a> and <a href="/p/data-processing-agreement">Data Processing Agreement</a>.</p>
 
 <h2>5. Limitation of Liability</h2>
-<p>JAP Accountants will exercise reasonable care and skill. Our liability is limited to the extent permitted by Australian law.</p>
+<p>Formly will exercise reasonable care and skill. Our liability is limited to the extent permitted by Australian law.</p>
 
 <h2>6. Termination</h2>
 <p>Either party may terminate the engagement by providing written notice. Termination does not affect obligations already incurred.</p>
@@ -419,7 +419,7 @@ async function main() {
     {
       slug: "privacy-policy",
       title: "Privacy Policy",
-      description: "How JAP Accountants collects, uses, and protects your personal information.",
+      description: "How Formly collects, uses, and protects your personal information.",
       content: `<h2>1. Information We Collect</h2>
 <p>We collect personal information including your name, email address, phone number, Tax File Number (TFN), financial records, and other details necessary for providing accounting services.</p>
 
@@ -451,16 +451,16 @@ async function main() {
 <p>We do not sell your personal information. Data may be shared with the ATO or other government bodies as required by law.</p>
 
 <h2>7. Contact</h2>
-<p>For privacy-related inquiries, contact our Privacy Officer at privacy@japaccountants.com.au.</p>`,
+<p>For privacy-related inquiries, contact our Privacy Officer at privacy@formly.com.au.</p>`,
       isPublished: true,
       showInNav: false,
     },
     {
       slug: "data-processing-agreement",
       title: "Data Processing Agreement",
-      description: "How JAP Accountants processes your personal and financial data.",
+      description: "How Formly processes your personal and financial data.",
       content: `<h2>1. Purpose</h2>
-<p>This Data Processing Agreement ("DPA") outlines how JAP Accountants processes personal and financial data on your behalf for the provision of accounting services.</p>
+<p>This Data Processing Agreement ("DPA") outlines how Formly processes personal and financial data on your behalf for the provision of accounting services.</p>
 
 <h2>2. Data Processed</h2>
 <p>Categories of data processed include:</p>
@@ -481,7 +481,7 @@ async function main() {
 </ul>
 
 <h2>4. Security Measures</h2>
-<p>JAP Accountants implements appropriate technical and organisational measures to protect your data, including encryption at rest and in transit, access controls, and audit logging.</p>
+<p>Formly implements appropriate technical and organisational measures to protect your data, including encryption at rest and in transit, access controls, and audit logging.</p>
 
 <h2>5. Sub-processors</h2>
 <p>We may engage authorised sub-processors. A current list is available upon request.</p>

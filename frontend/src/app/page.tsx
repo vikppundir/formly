@@ -605,23 +605,23 @@ export default function PublicHomePage() {
             <div className="lg:col-span-2 flex flex-col gap-8">
               <div className="bg-off-white dark:bg-primary-navy/30 p-8 rounded-xl border border-slate-blue/20 shadow-xl hover:border-accent-pink/30 transition-all group">
                 <div className="relative w-20 h-20 rounded-xl bg-primary-navy dark:bg-accent-pink/20 mb-6 overflow-hidden border-2 border-accent-pink/30 group-hover:scale-105 transition-transform">
-                  <img src="https://picsum.photos/300/300?grayscale" alt="Amit Deol" className="w-full h-full object-cover" />
+                  <div className="w-full h-full bg-gradient-to-br from-primary-navy to-accent-pink flex items-center justify-center text-white text-2xl font-bold">F</div>
                 </div>
                 <h4 className="text-xl font-display font-bold text-primary-navy dark:text-clean-white group-hover:text-accent-pink transition-colors">
-                  Amit Deol
+                  Formly Team
                 </h4>
                 <p className="text-xs font-semibold uppercase tracking-wider text-accent-pink mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-                  Director, Formly
+                  Leadership, Formly
                 </p>
                 <p className="text-dark-charcoal/70 dark:text-slate-400 text-sm leading-relaxed italic mb-6 border-l-4 border-accent-pink pl-4">
                   "At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions."
                 </p>
                 <div className="flex items-center gap-4 p-4 rounded-lg bg-clean-white dark:bg-primary-navy/50 hover:bg-accent-pink/10 transition-all">
-                  <div className="p-3 bg-accent-pink/10 rounded-lg text-lg">💼</div>
+                  <div className="p-3 bg-accent-pink/10 rounded-lg text-lg">🔒</div>
                   <div>
-                    <div className="text-xs font-semibold text-primary-navy dark:text-clean-white uppercase">Director Verified</div>
-                    <div className="text-xs font-medium text-dark-charcoal/70 dark:text-slate-400">AMIT KAUR DEOL</div>
+                    <div className="text-xs font-semibold text-primary-navy dark:text-clean-white uppercase">SOC 2 Compliant</div>
+                    <div className="text-xs font-medium text-dark-charcoal/70 dark:text-slate-400">AES-256 ENCRYPTED • RBAC SECURED</div>
                   </div>
                 </div>
               </div>
@@ -827,8 +827,8 @@ export default function PublicHomePage() {
                   </div>
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-slate-blue mb-1">Email</div>
-                    <a href="mailto:info@japaccountants.com.au" className="text-sm text-clean-white hover:text-accent-pink transition-colors break-all">
-                      info@japaccountants.com.au
+                    <a href="mailto:contact@formly.com.au" className="text-sm text-clean-white hover:text-accent-pink transition-colors break-all">
+                      contact@formly.com.au
                     </a>
                   </div>
                 </div>
@@ -839,11 +839,11 @@ export default function PublicHomePage() {
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-slate-blue mb-1">Phone</div>
                     <div className="space-y-1">
-                      <a href="tel:0433131346" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
-                        0433 131 346
+                      <a href="tel:1300367659" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
+                        1300 FORMLY (1300 367 659)
                       </a>
-                      <a href="tel:0387522768" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
-                        03 8752 2768
+                      <a href="tel:+61390001234" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
+                        +61 3 9000 1234
                       </a>
                     </div>
                   </div>
@@ -869,8 +869,8 @@ export default function PublicHomePage() {
               </h4>
               <ul className="space-y-4 text-xs font-medium text-slate-blue">
                 {[
-                  { name: 'Narre Warren', address: 'Suite 312/65 Victor Cres, VIC 3805' },
-                  { name: 'Melton', address: '1/68 Navigation Dr, VIC 3337' }
+                  { name: 'Melbourne CBD', address: 'Level 12, 120 Collins St, VIC 3000' },
+                  { name: 'Sydney CBD', address: 'Level 8, 50 Margaret St, NSW 2000' }
                 ].map((loc, i) => (
                   <li key={i} className="group">
                     <span className="text-clean-white block mb-1 group-hover:text-accent-pink transition-colors font-semibold">
@@ -886,7 +886,7 @@ export default function PublicHomePage() {
           </div>
           <div className="pt-8 border-t border-slate-blue/20 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-blue font-medium uppercase tracking-wider">
             <div className="hover:text-accent-pink transition-colors cursor-default">
-              ©2026 FORMLY — DIRECTOR AMIT DEOL
+              ©2026 FORMLY — ALL RIGHTS RESERVED
             </div>
             <div className="flex gap-8">
               <button className="hover:text-accent-pink transition-colors relative group">
