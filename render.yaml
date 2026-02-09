@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: jab-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BACKEND_PORT
+        value: "4000"
+      - key: JWT_ACCESS_TTL
+        value: "15m"
+      - key: JWT_REFRESH_TTL
+        value: "7d"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: RATE_LIMIT_AUTH_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_AUTH_MAX
+        value: "10"
+      # These must be set manually in Render dashboard:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
