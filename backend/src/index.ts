@@ -71,9 +71,17 @@ async function build() {
   });
   const corsOrigins = (env.CORS_ORIGIN || "").split(",").map((o) => o.trim()).filter(Boolean);
   await app.register(cors, {
-    origin: corsOrigins.length > 0
-      ? corsOrigins
-      : true,
+    origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean | string) => void) => {
+      // Allow requests with no origin (server-to-server, curl, etc.)
+      if (!origin) return cb(null, true);
+      // If CORS_ORIGIN is configured, check against allowed list
+      if (corsOrigins.length > 0) {
+        if (corsOrigins.includes(origin)) return cb(null, origin);
+        return cb(new Error("CORS not allowed"), false);
+      }
+      // Development: allow all origins by reflecting the origin
+      return cb(null, origin);
+    },
     credentials: true,
   });
   await app.register(cookie, { secret: env.JWT_ACCESS_SECRET });
