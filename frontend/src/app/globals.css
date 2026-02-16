@@ -13,12 +13,12 @@
   --accent-hover: #4f46e5;
   
   /* Brand Color Palette */
-  --primary-navy: #312966;
-  --accent-pink: #E5097F;
+  --primary-navy: #10172a;
+  --accent-pink: #4ec9fa;
   --clean-white: #FFFFFF;
-  --off-white: #F4F6F9;
-  --dark-charcoal: #2B2E3B;
-  --slate-blue: #AAB5D6;
+  --off-white: #f8fcff;
+  --dark-charcoal: #091426;
+  --slate-blue: #8ba3c7;
   --accent-cyan: #06b6d4;
   --accent-teal: #14b8a6;
 }

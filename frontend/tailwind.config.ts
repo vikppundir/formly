@@ -12,13 +12,19 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Brand Colors
-        "primary-navy": "#312966",
-        "accent-pink": "#E5097F",
+        // Brand Colors — Bhalekar-inspired palette
+        "primary-navy": "#10172a",
+        "accent-pink": "#4ec9fa",
         "clean-white": "#FFFFFF",
-        "off-white": "#F4F6F9",
-        "dark-charcoal": "#2B2E3B",
-        "slate-blue": "#AAB5D6",
+        "off-white": "#f8fcff",
+        "dark-charcoal": "#091426",
+        "slate-blue": "#8ba3c7",
+        // Extended palette
+        "deep-navy": "#0b1120",
+        "card-dark": "rgba(9, 20, 38, 0.85)",
+        "accent-blue": "#3498db",
+        "ice-blue": "#eaf6ff",
+        "cyan-glow": "#4ec9fa",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],

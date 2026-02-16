@@ -1,450 +1,455 @@
 "use client";
 
 /**
- * Public Homepage - Formly Accounting Platform
- * Shows hero with video background, about, services, testimonials, and contact sections
+ * Public Homepage — Formly Accounting Platform
+ * Enterprise-grade client portal for Australian accounting practices
  */
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 
-// Particles Component for Hero Background
-function Particles() {
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    left: number;
-    top: number;
-    delay: number;
-    duration: number;
-    size: number;
-  }>>([]);
-
+/* ---------- animated counter hook ---------- */
+function useCountUp(target: number, duration = 2000, start: boolean) {
+  const [val, setVal] = useState(0);
+  const raf = useRef<number | null>(null);
   useEffect(() => {
-    setParticles(
-      Array.from({ length: 50 }, (_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        delay: Math.random() * 8,
-        duration: 8 + Math.random() * 4,
-        size: 2 + Math.random() * 4,
-      }))
-    );
-  }, []);
-
-  if (particles.length === 0) {
-    return <div className="particles" suppressHydrationWarning />;
-  }
-
-  return (
-    <div className="particles" suppressHydrationWarning>
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="particle"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.duration}s`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-          }}
-          suppressHydrationWarning
-        />
-      ))}
-    </div>
-  );
+    if (!start) { setVal(0); return; }
+    const t0 = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      setVal(target * (1 - Math.pow(1 - p, 4)));
+      if (p < 1) raf.current = requestAnimationFrame(tick);
+      else setVal(target);
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
+  }, [target, duration, start]);
+  return val;
 }
 
-// Count-up animation hook
-function useCountUp(targetValue: number, duration: number = 2000, isHovered: boolean) {
-  const [count, setCount] = useState(targetValue);
-  const startTimeRef = useRef<number | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-
+/* ---------- intersection observer hook ---------- */
+function useInView(threshold = 0.2) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
   useEffect(() => {
-    if (!isHovered) {
-      setCount(targetValue);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      return;
-    }
-
-    setCount(0);
-    const startTime = performance.now();
-    startTimeRef.current = startTime;
-
-    const animate = (currentTime: number) => {
-      if (!startTimeRef.current) return;
-      const elapsed = currentTime - startTimeRef.current;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(targetValue * easeOutQuart);
-      if (progress < 1) {
-        animationFrameRef.current = requestAnimationFrame(animate);
-      } else {
-        setCount(targetValue);
-      }
-    };
-
-    animationFrameRef.current = requestAnimationFrame(animate);
-    return () => {
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    };
-  }, [targetValue, duration, isHovered]);
-
-  return count;
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, inView };
 }
 
-// Stat Icon Component
-function StatIcon({ type, className }: { type: string; className?: string }) {
-  const iconClass = `w-12 h-12 ${className || ''}`;
-  
-  switch (type) {
-    case 'clients':
-      return (
-        <svg className={iconClass} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'savings':
-      return (
-        <svg className={iconClass} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'grants':
-      return (
-        <svg className={iconClass} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M9 22V12H15V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'calls':
-      return (
-        <svg className={iconClass} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7292C21.7209 20.9842 21.5573 21.2131 21.3522 21.4012C21.1472 21.5894 20.9053 21.7326 20.6424 21.8217C20.3795 21.9108 20.1015 21.9437 19.8262 21.9182C16.7429 21.5851 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.19 12.85C3.49997 10.2412 2.44824 7.27099 2.12 4.18C2.09453 3.90472 2.12739 3.62671 2.21649 3.36381C2.30559 3.1009 2.44879 2.85902 2.63696 2.654C2.82513 2.44899 3.05402 2.28538 3.30901 2.17379C3.564 2.06219 3.83972 2.00513 4.118 2.006H7.118C7.59395 1.99522 8.06706 2.16708 8.43371 2.49159C8.80036 2.8161 9.03526 3.27145 9.09 3.77C9.24337 5.00712 9.59233 6.21491 10.12 7.35C10.2604 7.67437 10.3091 8.03379 10.2603 8.38581C10.2115 8.73783 10.0674 9.06856 9.845 9.34L8.09 11.1C9.51429 13.4871 11.5029 15.4757 13.89 16.9L15.65 15.14C15.9214 14.9176 16.2521 14.7735 16.6041 14.7247C16.9561 14.6759 17.3156 14.7246 17.64 14.865C18.7751 15.3927 19.9829 15.7416 21.22 15.895C21.7186 15.9497 22.1739 16.1846 22.4984 16.5513C22.8229 16.918 22.9948 17.3911 22.984 17.867L22 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
-// Stat Card Component
-function StatCard({ stat, index }: { stat: any; index: number }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const count = useCountUp(stat.targetValue, stat.duration, isHovered);
-  const displayValue = isHovered
-    ? (stat.isDecimal ? count.toFixed(1) : Math.floor(count).toLocaleString())
-    : (stat.isDecimal ? stat.targetValue.toFixed(1) : stat.targetValue.toLocaleString());
-
-  return (
-    <div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group relative p-6 sm:p-8 bg-white dark:bg-primary-navy/40 rounded-3xl border-2 border-primary-navy/30 dark:border-primary-navy/50 shadow-xl hover:shadow-2xl transition-all duration-700 hover:scale-105 hover:-translate-y-3 backdrop-blur-sm overflow-hidden animate-fade-in-up"
-      style={{ animationDelay: `${index * 150}ms` }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-navy/0 via-primary-navy/0 to-primary-navy/0 group-hover:from-primary-navy/10 group-hover:via-primary-navy/5 group-hover:to-transparent transition-all duration-700 rounded-3xl" />
-      
-      <div className="relative mb-4 sm:mb-6">
-        <div className="absolute -top-2 -left-2 w-12 h-12 sm:w-16 sm:h-16 bg-accent-pink/10 dark:bg-accent-pink/20 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700" />
-        <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-accent-pink dark:text-accent-pink/80 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-          <StatIcon type={stat.icon} className="w-full h-full" />
-        </div>
-      </div>
-      
-      <div className="mb-3 sm:mb-4 relative z-10">
-        <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-slate-900 dark:text-white group-hover:text-accent-pink transition-colors duration-500 tabular-nums flex items-baseline flex-wrap gap-1">
-          {stat.prefix && (
-            <span className="text-xl sm:text-2xl md:text-3xl text-primary-navy dark:text-slate-blue font-semibold leading-none">
-              {stat.prefix}
-            </span>
-          )}
-          <span className="inline-block min-w-0 flex-shrink-0">
-            {displayValue}
-          </span>
-          {stat.suffix && (
-            <span className="text-xl sm:text-2xl md:text-3xl text-primary-navy dark:text-slate-blue font-semibold leading-none">
-              {stat.suffix}
-            </span>
-          )}
-        </div>
-      </div>
-      
-      <div className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest relative z-10 group-hover:text-accent-pink transition-colors duration-500">
-        {stat.label}
-      </div>
-      
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-      </div>
-      
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-accent-pink/0 to-transparent rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    </div>
-  );
-}
-
+/* ========== PAGE ========== */
 export default function PublicHomePage() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeService, setActiveService] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const statsVis = useInView(0.3);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const fn = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-        setIsAnimating(false);
-      }, 300);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  function handleFormSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setActiveService(null);
-    setToast("Thank you! Formly will contact you within one business day.");
+    setToast("Thank you! We'll be in touch within one business day.");
     setTimeout(() => setToast(null), 4000);
   }
 
-  const services = [
-    { title: "Taxation Services", icon: "💼", desc: "GST/BAS, individual and business returns, and strategic year-end planning." },
-    { title: "Bookkeeping & Payroll", icon: "📊", desc: "Day-to-day management and full superannuation compliance." },
-    { title: "Business Advisory", icon: "💡", desc: "Understanding financial positioning to improve long-term profitability." },
-    { title: "Startup & Company Setup", icon: "🚀", desc: "From business structure choice to registration and cloud accounting setup." },
-    { title: "BAS & GST Compliance", icon: "📑", desc: "Accurate, on-time lodgements every quarter without the headaches." },
-    { title: "Financial Reporting", icon: "📝", desc: "Clear, accurate reports including cash flow statements and P&L summaries." }
+  /* ---------- DATA ---------- */
+  const problems = [
+    { icon: "⏰", title: "Time-Consuming", desc: "Chasing clients for documents, details and signatures via email and phone." },
+    { icon: "⚠️", title: "Risky", desc: "Sensitive TFN and financial data floating around in emails and WhatsApp." },
+    { icon: "📈", title: "Unscalable", desc: "More clients means more spreadsheets, more chaos, more errors." },
+    { icon: "🚫", title: "Non-Compliant", desc: "No audit trail, no encryption, no proper access control." },
   ];
 
-  const audienceSegments = [
-    { label: 'Small to medium size business', benefit: 'Scale with structural confidence' },
-    { label: 'Startup and New Business', benefit: 'From ABN setup to cloud automation' },
-    { label: 'High-income individual', benefit: 'Optimize your wealth & tax position' },
-    { label: 'Property investor', benefit: 'Manage yields, deductions & CGT' },
-    { label: 'e-commerce, online and uber drivers', benefit: 'Specialized ride-share tax support' },
-    { label: 'Sole Trader and contractor', benefit: 'Simple, effective BAS & Bookkeeping' }
+  const clientFeatures = [
+    { icon: "🔐", title: "Secure Registration & Verification", desc: "Email + OTP verification. Quick, simple, and compliant." },
+    { icon: "🏢", title: "Multi-Account Management", desc: "Individual, Company, Trust & Partnership accounts — all from one login." },
+    { icon: "👥", title: "Partner & Spouse Collaboration", desc: "Invite directors, trustees, beneficiaries and spouses via branded emails." },
+    { icon: "🛒", title: "Service Marketplace", desc: "Clients browse, purchase & pay for accounting services via Stripe." },
+    { icon: "✍️", title: "Digital Consent & Signatures", desc: "Legally binding digital signatures with full IP & timestamp audit trail." },
+    { icon: "🎫", title: "Support Tickets", desc: "Clients raise tickets directly from their dashboard — your team resolves." },
   ];
 
-  const statistics = [
-    { targetValue: 6000, suffix: "+", label: "Happy Clients", icon: "clients", duration: 2000 },
-    { targetValue: 25440, prefix: "$", label: "Average Savings", icon: "savings", duration: 2500 },
-    { targetValue: 8.5, prefix: "$", suffix: "M", label: "Government Grants", icon: "grants", duration: 2000, isDecimal: true },
-    { targetValue: 98.4, suffix: "%", label: "Calls responded in 24 hrs", icon: "calls", duration: 2000, isDecimal: true }
+  const adminFeatures = [
+    { icon: "📊", title: "Dashboard Overview", desc: "Users, accounts, tickets, revenue — all at a glance." },
+    { icon: "👤", title: "User Management", desc: "Full CRUD, search, filter, roles, status control." },
+    { icon: "💳", title: "Payment & Revenue", desc: "Stripe payments, revenue tracking, GST calculation." },
+    { icon: "🔑", title: "RBAC Access Control", desc: "4 default roles + custom roles with fine-grained permissions." },
+    { icon: "🌐", title: "Website CMS", desc: "Update your entire public website without any developer." },
+    { icon: "⚙️", title: "Full Configuration", desc: "Email, SMS, payments, templates — all from admin panel." },
+  ];
+
+  const differentiators = [
+    { icon: "🇦🇺", title: "Built for Australia", desc: "TFN encryption, ABN validation via ABR, GST tracking, Australian account structures, AUD currency." },
+    { icon: "🛡️", title: "Enterprise Security", desc: "AES-256-GCM encryption, bcrypt hashing, JWT + HTTP-only cookies, Helmet headers, rate limiting." },
+    { icon: "🤝", title: "Self-Service Onboarding", desc: "Clients register, fill details, invite partners, sign consents & pay — all without your team lifting a finger." },
+    { icon: "📝", title: "Legal Audit Trail", desc: "Digital signatures with IP address, browser fingerprint, timestamp, document version — legally defensible." },
+    { icon: "🏗️", title: "Multi-Account Architecture", desc: "One client, multiple accounts. Each account with multiple partners. Handles complex trust structures." },
+    { icon: "💰", title: "Low Running Cost", desc: "~AUD $25–45/month total hosting + services. Cheaper than a single hour of your time." },
+  ];
+
+  const stats = [
+    { value: 150, suffix: "+", label: "API Endpoints", dur: 2000 },
+    { value: 25, suffix: "+", label: "Database Models", dur: 1500 },
+    { value: 30, suffix: "+", label: "Frontend Pages", dur: 1800 },
+    { value: 4, suffix: "", label: "Account Types", dur: 1200 },
+  ];
+
+  const techStack = [
+    { name: "Next.js 14", cat: "Frontend" },
+    { name: "React 18", cat: "Frontend" },
+    { name: "TypeScript", cat: "Full Stack" },
+    { name: "Tailwind CSS", cat: "Frontend" },
+    { name: "Fastify", cat: "Backend" },
+    { name: "Prisma ORM", cat: "Backend" },
+    { name: "PostgreSQL", cat: "Database" },
+    { name: "Stripe", cat: "Payments" },
+    { name: "Twilio", cat: "SMS" },
+    { name: "SendGrid", cat: "Email" },
+    { name: "AES-256", cat: "Security" },
+    { name: "JWT + RBAC", cat: "Auth" },
+  ];
+
+  const compliance = [
+    { badge: "SOC 2", desc: "Encryption at rest & in transit, access controls, audit logging" },
+    { badge: "Privacy Act", desc: "Data minimisation, purpose limitation, consent collection" },
+    { badge: "ATO", desc: "TFN encryption, ABN validation, Tax Agent Authority consent" },
+    { badge: "PCI DSS", desc: "Stripe handles all card data — zero card storage" },
+    { badge: "OWASP", desc: "Input validation, auth controls, security headers, rate limiting" },
+  ];
+
+  const costs = [
+    { item: "Application Hosting", detail: "Server, DB, Frontend", cost: "$22 – $40" },
+    { item: "SMS (Twilio)", detail: "Phone verification", cost: "$2 – $5" },
+    { item: "Emails (SendGrid)", detail: "Notifications", cost: "FREE" },
+    { item: "Payments (Stripe)", detail: "Client payments", cost: "1.75% + $0.30/txn" },
+    { item: "Domain Name", detail: ".com.au", cost: "$15 – $30/yr" },
+    { item: "SSL + ABN Lookup", detail: "Security & validation", cost: "FREE" },
   ];
 
   const testimonials = [
-    { name: "Sarah Mitchell", role: "CEO, TechStart Solutions", content: "Formly transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional and always responsive!", rating: 5, image: "https://i.pravatar.cc/150?img=47" },
-    { name: "Michael Chen", role: "Property Investor", content: "As a property investor, tax compliance was overwhelming. Formly simplified everything and helped me maximize deductions. Their team is exceptional!", rating: 5, image: "https://i.pravatar.cc/150?img=12" },
-    { name: "Emma Thompson", role: "Small Business Owner", content: "The cloud accounting setup was seamless. I can now focus on growing my business while Formly handles all the financial complexities. Best decision ever!", rating: 5, image: "https://i.pravatar.cc/150?img=45" },
-    { name: "David Rodriguez", role: "Freelance Consultant", content: "From BAS lodgements to tax optimization, Formly has been a game-changer. They're always available when I need them. 98.4% response rate is real!", rating: 5, image: "https://i.pravatar.cc/150?img=33" },
-    { name: "Lisa Anderson", role: "E-commerce Entrepreneur", content: "Government grants assistance was outstanding. Formly helped us secure significant funding and navigate all compliance requirements. Truly grateful!", rating: 5, image: "https://i.pravatar.cc/150?img=20" },
-    { name: "James Wilson", role: "Startup Founder", content: "Starting a business is stressful enough. Having Formly handle all financial aspects gave me peace of mind. Professional, efficient, and reliable.", rating: 5, image: "https://i.pravatar.cc/150?img=51" }
+    { name: "Sarah Mitchell", role: "CEO, TechStart Solutions", text: "Formly transformed our financial management. Their expertise saved us over $30,000 in the first year alone. Highly professional!", img: "https://i.pravatar.cc/150?img=47" },
+    { name: "Michael Chen", role: "Property Investor", text: "Tax compliance was overwhelming. Formly simplified everything and helped me maximize deductions. Exceptional team!", img: "https://i.pravatar.cc/150?img=12" },
+    { name: "Emma Thompson", role: "Small Business Owner", text: "The cloud accounting setup was seamless. I can focus on growing my business while Formly handles the rest.", img: "https://i.pravatar.cc/150?img=45" },
   ];
 
   return (
-    <div className="min-h-screen transition-colors duration-500 bg-white dark:bg-slate-950 text-slate-950 dark:text-slate-50 font-sans" suppressHydrationWarning>
-      {/* Navbar */}
-      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "bg-primary-navy/95 backdrop-blur-md py-3 shadow-xl" : "bg-transparent py-4 sm:py-6"}`}>
-        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-accent-pink to-[#312966] flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
-              F
-            </div>
-            <span className={`text-lg sm:text-xl font-bold tracking-tight ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`}>
-              Formly
-            </span>
+    <div className="min-h-screen bg-deep-navy text-white font-sans" suppressHydrationWarning>
+
+      {/* ===== NAVBAR ===== */}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-primary-navy/95 backdrop-blur-md shadow-xl py-3" : "bg-transparent py-5"}`}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-glow to-accent-blue flex items-center justify-center text-primary-navy font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">F</div>
+            <span className="text-xl font-bold tracking-tight text-white">Formly</span>
           </Link>
-
-          {/* Desktop Nav */}
-          <div className={`hidden lg:flex items-center gap-8 text-sm font-semibold ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`}>
-            <a href="#about" className="hover:text-accent-pink transition-colors">About</a>
-            <a href="#services" className="hover:text-accent-pink transition-colors">Services</a>
-            <a href="#testimonials" className="hover:text-accent-pink transition-colors">Testimonials</a>
-            <a href="#contact" className="hover:text-accent-pink transition-colors">Contact</a>
+          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/80">
+            <a href="#problem" className="hover:text-cyan-glow transition-colors">Why Formly</a>
+            <a href="#features" className="hover:text-cyan-glow transition-colors">Features</a>
+            <a href="#security" className="hover:text-cyan-glow transition-colors">Security</a>
+            <a href="#pricing" className="hover:text-cyan-glow transition-colors">Pricing</a>
+            <a href="#contact" className="hover:text-cyan-glow transition-colors">Contact</a>
           </div>
-
           <div className="flex items-center gap-3">
-            <Link href="/login" className={`hidden sm:block text-sm font-semibold hover:text-accent-pink transition-colors ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`}>
-              Login
-            </Link>
-            <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-accent-pink hover:bg-accent-pink/90 text-white rounded-lg text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-accent-pink/30">
-              Get Started
-            </Link>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`lg:hidden p-2 rounded-lg transition-colors ${isScrolled ? "text-white" : "text-primary-navy dark:text-white"}`}
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-              </svg>
+            <Link href="/login" className="hidden sm:block text-sm font-medium text-white/80 hover:text-cyan-glow transition-colors">Login</Link>
+            <Link href="/register" className="px-5 py-2.5 bg-cyan-glow hover:bg-cyan-glow/90 text-primary-navy rounded-lg text-sm font-bold transition-all hover:scale-105 shadow-lg shadow-cyan-glow/20">Get Started</Link>
+            <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 text-white">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} /></svg>
             </button>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-primary-navy/98 backdrop-blur-lg border-t border-accent-pink/20 mt-2">
-            <div className="container mx-auto px-6 py-4 flex flex-col gap-3">
-              <a href="#about" onClick={() => setMobileMenuOpen(false)} className="text-white py-2 border-b border-white/10">About</a>
-              <a href="#services" onClick={() => setMobileMenuOpen(false)} className="text-white py-2 border-b border-white/10">Services</a>
-              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="text-white py-2 border-b border-white/10">Testimonials</a>
-              <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-white py-2 border-b border-white/10">Contact</a>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-white py-2">Login</Link>
+        {mobileMenu && (
+          <div className="lg:hidden bg-primary-navy/98 backdrop-blur-lg border-t border-cyan-glow/20 mt-2">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-3">
+              {["problem|Why Formly","features|Features","security|Security","pricing|Pricing","contact|Contact"].map(s => {
+                const [id, label] = s.split("|");
+                return <a key={id} href={`#${id}`} onClick={() => setMobileMenu(false)} className="text-white py-2 border-b border-white/10">{label}</a>;
+              })}
+              <Link href="/login" onClick={() => setMobileMenu(false)} className="text-white py-2">Login</Link>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Hero Section with Background Video */}
-      <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden pt-24 pb-20">
-        {/* Animated Background Layers */}
+      {/* ===== HERO ===== */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-20">
         <div className="absolute inset-0 z-0">
-          {/* Background Video */}
-          <video 
-            autoPlay 
-            muted 
-            loop 
-            playsInline 
-            className="w-full h-full object-cover z-0" 
-            style={{ filter: 'brightness(1.3) contrast(1.2)' }}
-          >
-            <source src="/videos/hero-section-vdo.mp4" type="video/mp4" />
-            <source src="https://assets.mixkit.co/videos/preview/mixkit-financial-data-on-a-digital-screen-22684-large.mp4" type="video/mp4" />
-            <source src="https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4" type="video/mp4" />
-          </video>
-          
-          {/* Video Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-clean-white/50 via-clean-white/30 to-clean-white/60 dark:from-primary-navy/80 dark:via-primary-navy/70 dark:to-primary-navy/85 z-10" />
-          <div className="absolute inset-0 bg-primary-navy/10 dark:bg-dark-charcoal/20 z-10" />
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-pink/5 via-transparent to-slate-blue/5 dark:from-accent-pink/3 dark:via-transparent dark:to-slate-blue/3 animate-gradient z-20" />
-          
-          {/* Particle Effects */}
-          <Particles />
+          <div className="absolute inset-0 bg-gradient-to-b from-deep-navy via-primary-navy to-deep-navy" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(78,201,250,0.15),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(52,152,219,0.1),transparent_50%)]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(78,201,250,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(78,201,250,0.3) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
-        
-        {/* Hero Content */}
-        <div className="container mx-auto px-6 relative z-30 text-center max-w-5xl mt-20">
-          <div className="inline-flex items-center gap-2 px-6 py-3 bg-off-white/90 dark:bg-primary-navy/90 backdrop-blur-sm rounded-full text-xs font-semibold uppercase tracking-wider text-primary-navy dark:text-clean-white mb-8 border border-accent-pink/30 shadow-lg animate-slide-up hover:scale-105 transition-transform cursor-default">
-            <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-            <span>ATO Compliance • Australia Wide</span>
-            <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-glow/10 border border-cyan-glow/30 rounded-full text-xs font-semibold uppercase tracking-widest text-cyan-glow mb-8">
+            <span className="w-2 h-2 bg-cyan-glow rounded-full animate-pulse" />
+            Enterprise-Grade • ATO Compliant • SOC 2 Aligned
           </div>
-
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold mb-8 tracking-tight leading-[1.1] text-primary-navy dark:text-clean-white animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Protect.{' '}
-            <span className="text-accent-pink">Optimise.</span>{' '}
-            Grow.
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-[1.1]">
+            Your Secure{" "}
+            <span className="text-cyan-glow">Client Portal</span>
+            <br className="hidden sm:block" />
+            for Australian Accounting
           </h1>
-
-          <p className="text-lg md:text-xl lg:text-2xl text-dark-charcoal dark:text-slate-300 mb-12 font-normal max-w-3xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            Smart, simple, and reliable accounting solutions that help you focus on what matters —{' '}
-            <span className="font-semibold text-primary-navy dark:text-accent-pink">growing your business.</span>
+          <p className="text-lg md:text-xl text-white/70 mb-10 max-w-3xl mx-auto leading-relaxed">
+            Stop chasing clients for documents. A complete, enterprise-grade portal where your clients self-serve — register, submit TFN &amp; ABN, invite partners, purchase services, sign consents &amp; pay online.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <Link 
-              href="/register"
-              className="group relative w-full sm:w-auto px-12 py-5 bg-accent-pink hover:bg-accent-pink/90 text-clean-white font-bold rounded-lg text-lg transition-all shadow-xl shadow-accent-pink/30 hover:shadow-accent-pink/50 transform hover:scale-105 overflow-hidden"
-            >
-              <span className="relative z-10">Get Started</span>
-              <div className="absolute inset-0 bg-white/20 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/register" className="w-full sm:w-auto px-10 py-4 bg-cyan-glow text-primary-navy font-bold rounded-lg text-base hover:bg-cyan-glow/90 transition-all shadow-xl shadow-cyan-glow/20 hover:scale-105">
+              Start Free Demo
             </Link>
-            <a 
-              href="#services"
-              className="group w-full sm:w-auto px-12 py-5 bg-clean-white dark:bg-primary-navy border-2 border-primary-navy dark:border-accent-pink text-primary-navy dark:text-clean-white font-semibold rounded-lg text-lg hover:bg-off-white dark:hover:bg-primary-navy/80 transition-all transform hover:scale-105 shadow-lg"
-            >
-              Our Services
+            <a href="#features" className="w-full sm:w-auto px-10 py-4 border-2 border-cyan-glow/40 text-white font-semibold rounded-lg text-base hover:border-cyan-glow hover:bg-cyan-glow/10 transition-all">
+              Explore Features
             </a>
           </div>
-          
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-float">
-            <div className="w-6 h-10 border-2 border-accent-pink/50 rounded-full flex justify-center p-2">
-              <div className="w-1 h-3 bg-accent-pink rounded-full animate-pulse" />
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+            {[{ n: "AES-256", t: "Encryption" }, { n: "100%", t: "ATO Ready" }, { n: "24/7", t: "Client Access" }, { n: "<$45", t: "Per Month" }].map((s, i) => (
+              <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-glow/40 transition-all">
+                <div className="text-2xl font-display font-bold text-cyan-glow">{s.n}</div>
+                <div className="text-xs text-white/50 uppercase tracking-wider mt-1">{s.t}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== THE PROBLEM ===== */}
+      <section id="problem" className="py-24 bg-primary-navy relative">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">The Problem</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Managing Client Data is{" "}
+              <span className="text-cyan-glow">Broken</span>
+            </h2>
+            <p className="text-white/60 max-w-2xl mx-auto">As an Australian accounting practice, you deal with highly sensitive client data every day — TFN, ABN, financial records. Current methods are failing you.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {problems.map((p, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-red-400/40 transition-all group">
+                <div className="text-3xl mb-4">{p.icon}</div>
+                <h3 className="text-lg font-bold mb-2 group-hover:text-red-400 transition-colors">{p.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== THE SOLUTION ===== */}
+      <section className="py-24 bg-deep-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(78,201,250,0.08),transparent_60%)]" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">The Solution</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Everything in{" "}
+              <span className="text-cyan-glow">One Place</span>
+            </h2>
+            <p className="text-white/60 max-w-3xl mx-auto">A complete Client Portal and Practice Management Platform — built specifically for the Australian accounting industry. Fully secure. Fully automated.</p>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            <div className="p-8 rounded-2xl bg-white/5 border border-cyan-glow/20">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-cyan-glow/20 flex items-center justify-center text-cyan-glow text-lg">👤</div>
+                <h3 className="text-xl font-bold">Your Clients Get</h3>
+              </div>
+              <div className="space-y-3">
+                {["Register & verify identity in minutes", "Create Individual, Company, Trust & Partnership accounts", "Submit TFN, ABN & personal details via encrypted forms", "Invite directors, partners, trustees & spouses", "Purchase services & pay online via Stripe", "Sign legal consents with digital signatures", "Raise support tickets directly"].map((t, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-cyan-glow/20 flex items-center justify-center text-cyan-glow text-xs flex-shrink-0 mt-0.5">✓</span>
+                    <span className="text-sm text-white/80">{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-8 rounded-2xl bg-white/5 border border-cyan-glow/20">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-cyan-glow/20 flex items-center justify-center text-cyan-glow text-lg">🏢</div>
+                <h3 className="text-xl font-bold">Your Team Gets</h3>
+              </div>
+              <div className="space-y-3">
+                {["Powerful admin dashboard with analytics", "Manage all clients & accounts from one place", "Track service purchases, payments & revenue", "Role-based access control (Super Admin, Admin, Manager, User)", "Full website CMS — update content without a developer", "Configure email, SMS & payment settings", "Handle support tickets with priority tracking"].map((t, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-cyan-glow/20 flex items-center justify-center text-cyan-glow text-xs flex-shrink-0 mt-0.5">✓</span>
+                    <span className="text-sm text-white/80">{t}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="py-20 bg-off-white dark:bg-dark-charcoal relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent-pink/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-blue/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col lg:flex-row gap-16 items-center">
-            <div className="lg:w-1/2">
-              <span className="inline-flex items-center gap-2 text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
-                <span className="w-1.5 h-1.5 bg-accent-pink rounded-full animate-pulse" />
-                About Formly
-              </span>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 text-primary-navy dark:text-clean-white leading-[1.1]">
-                We don't just prepare accounts.{' '}
-                <span className="text-accent-pink">We protect your business.</span>
-              </h2>
-              <p className="text-dark-charcoal dark:text-slate-300 text-base leading-relaxed mb-6">
-                At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions. Based in Victoria, our team provides end-to-end accounting and tax services tailored for individuals and SMEs across Australia.
-              </p>
-              <p className="text-dark-charcoal/70 dark:text-slate-400 leading-relaxed mb-8 text-sm">
-                We combine modern cloud accounting tools with practical business insights to simplify your finances, ensure compliance, and help you plan ahead with clarity and confidence.
-              </p>
-              <div className="group p-6 bg-clean-white dark:bg-primary-navy/50 border-l-4 border-accent-pink rounded-lg shadow-md hover:shadow-lg transition-all">
-                <span className="text-accent-pink font-bold text-lg">"</span>
-                <span className="text-dark-charcoal dark:text-slate-300 italic text-sm ml-2">
-                  We optimise your tax position, and keep you compliant—so you can grow with confidence.
-                </span>
-                <span className="text-accent-pink font-bold text-lg">"</span>
+      {/* ===== CLIENT FEATURES ===== */}
+      <section id="features" className="py-24 bg-primary-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Client Experience</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              What Your Clients{" "}
+              <span className="text-cyan-glow">Experience</span>
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {clientFeatures.map((f, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-glow/40 transition-all group hover:-translate-y-1">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="text-lg font-bold mb-2 group-hover:text-cyan-glow transition-colors">{f.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== ADMIN FEATURES ===== */}
+      <section className="py-24 bg-deep-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Admin Dashboard</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Powerful{" "}
+              <span className="text-cyan-glow">Management Tools</span>
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {adminFeatures.map((f, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-glow/40 transition-all group hover:-translate-y-1">
+                <div className="text-3xl mb-4">{f.icon}</div>
+                <h3 className="text-lg font-bold mb-2 group-hover:text-cyan-glow transition-colors">{f.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== KEY DIFFERENTIATORS ===== */}
+      <section className="py-24 bg-primary-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(78,201,250,0.08),transparent_60%)]" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Why Choose Formly</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Key{" "}
+              <span className="text-cyan-glow">Differentiators</span>
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {differentiators.map((d, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 hover:border-cyan-glow/40 transition-all">
+                <div className="text-3xl mb-4">{d.icon}</div>
+                <h3 className="text-lg font-bold mb-2 text-cyan-glow">{d.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{d.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== HOW IT WORKS ===== */}
+      <section className="py-24 bg-deep-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">End-to-End Flow</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              How It{" "}
+              <span className="text-cyan-glow">Works</span>
+            </h2>
+          </div>
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div className="p-8 rounded-2xl bg-white/5 border border-cyan-glow/20">
+              <h3 className="text-lg font-bold text-cyan-glow mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-cyan-glow/20 flex items-center justify-center text-sm">👤</span>
+                Client Journey
+              </h3>
+              <div className="space-y-4">
+                {["Register & verify email/phone", "Create account (Individual, Company, Trust, Partnership)", "Fill details — TFN, ABN, address, etc.", "Invite partners, directors, trustees, spouse", "Partners accept & fill their own details", "Browse & purchase accounting services", "Pay securely via Stripe", "Sign legal consents (digital signature)", "Track service progress", "Raise support tickets if needed"].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-cyan-glow/10 border border-cyan-glow/30 flex items-center justify-center text-cyan-glow text-xs font-bold flex-shrink-0">{i + 1}</span>
+                    <span className="text-sm text-white/80">{step}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="lg:w-1/2 grid grid-cols-2 gap-4">
-              {[
-                { n: '100%', t: 'ATO Ready', icon: '✓', image: '/images/ato-ready.jpg' },
-                { n: '24h', t: 'Support', icon: '⚡', image: '/images/support.jpg' },
-                { n: 'Secure', t: 'Data Vault', icon: '🔒', image: '/images/data-vault.jpg' },
-                { n: 'VIC', t: 'Victoria Base', icon: '📍', image: '/images/victoria-base.jpg' }
-              ].map((s, i) => (
-                <div 
-                  key={i} 
-                  className="group aspect-square bg-clean-white dark:bg-primary-navy/30 rounded-xl p-6 flex flex-col justify-end shadow-lg border border-slate-blue/20 dark:border-slate-blue/10 hover:border-accent-pink/50 hover:scale-105 transition-all cursor-default relative overflow-hidden"
-                >
-                  <div className="absolute inset-0 z-0">
-                    <img 
-                      src={s.image} 
-                      alt={s.t}
-                      className="w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-primary-navy/5 group-hover:bg-primary-navy/10 transition-all rounded-xl" />
+            <div className="p-8 rounded-2xl bg-white/5 border border-cyan-glow/20">
+              <h3 className="text-lg font-bold text-cyan-glow mb-6 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-lg bg-cyan-glow/20 flex items-center justify-center text-sm">🏢</span>
+                Admin Journey
+              </h3>
+              <div className="space-y-4">
+                {["Login to admin dashboard", "Review dashboard overview & stats", "Review new account submissions", "Manage service purchases & track progress", "Track payments & revenue", "Reply to support tickets", "Update website content via CMS", "Manage users, roles & permissions", "Configure email, SMS & payment settings", "Generate reports & analytics"].map((step, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-cyan-glow/10 border border-cyan-glow/30 flex items-center justify-center text-cyan-glow text-xs font-bold flex-shrink-0">{i + 1}</span>
+                    <span className="text-sm text-white/80">{step}</span>
                   </div>
-                  
-                  <div className="relative z-10">
-                    <div className="absolute top-3 right-3 text-xl opacity-30 group-hover:opacity-50 transition-opacity z-20">{s.icon}</div>
-                    <div className="text-3xl font-display font-bold text-primary-navy dark:text-clean-white mb-2 group-hover:text-accent-pink transition-colors">
-                      {s.n}
-                    </div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-dark-charcoal/70 dark:text-slate-400">
-                      {s.t}
-                    </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== TECH STATS ===== */}
+      <section ref={statsVis.ref} className="py-24 bg-primary-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(78,201,250,0.1),transparent_50%)]" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Platform Scale</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3">
+              Built for{" "}
+              <span className="text-cyan-glow">Scale</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((s, i) => {
+              const count = useCountUp(s.value, s.dur, statsVis.inView);
+              return (
+                <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+                  <div className="text-4xl md:text-5xl font-display font-bold text-cyan-glow tabular-nums">
+                    {Math.floor(count)}{s.suffix}
                   </div>
+                  <div className="text-xs text-white/50 uppercase tracking-widest mt-2">{s.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== SECURITY & COMPLIANCE ===== */}
+      <section id="security" className="py-24 bg-deep-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Security & Compliance</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Enterprise-Grade{" "}
+              <span className="text-cyan-glow">Security</span>
+            </h2>
+            <p className="text-white/60 max-w-2xl mx-auto">Your clients trust you with their most sensitive information. This portal treats that trust with the highest level of security.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+            {compliance.map((c, i) => (
+              <div key={i} className="p-5 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-glow/30 transition-all">
+                <div className="inline-block px-3 py-1 bg-cyan-glow/10 border border-cyan-glow/30 rounded-full text-cyan-glow text-xs font-bold mb-3">{c.badge}</div>
+                <p className="text-sm text-white/60">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <h3 className="text-lg font-bold mb-6 text-white/90">Technology Stack</h3>
+            <div className="flex flex-wrap justify-center gap-3">
+              {techStack.map((t, i) => (
+                <div key={i} className="px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 hover:border-cyan-glow/30 transition-all">
+                  <div className="text-sm font-semibold text-white/90">{t.name}</div>
+                  <div className="text-[10px] text-cyan-glow uppercase tracking-wider">{t.cat}</div>
                 </div>
               ))}
             </div>
@@ -452,490 +457,211 @@ export default function PublicHomePage() {
         </div>
       </section>
 
-      {/* Statistics Section */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 via-off-white to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(229,9,127,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(229,9,127,0.1),transparent_50%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-pink/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-blue/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        
-        <div className="container mx-auto px-6 relative z-10">
+      {/* ===== PRICING ===== */}
+      <section id="pricing" className="py-24 bg-primary-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(78,201,250,0.06),transparent_50%)]" />
+        <div className="max-w-4xl mx-auto px-6 relative z-10">
           <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
-              <span className="w-1.5 h-1.5 bg-accent-pink rounded-full animate-pulse" />
-              By The Numbers
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4 text-primary-navy dark:text-clean-white">
-              Proven <span className="text-accent-pink">Results</span> That Speak
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Running Costs</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3 mb-4">
+              Incredibly{" "}
+              <span className="text-cyan-glow">Affordable</span>
             </h2>
-            <p className="text-dark-charcoal/70 dark:text-slate-300 max-w-2xl mx-auto text-sm leading-relaxed">
-              Delivering exceptional results and measurable value to businesses across Australia
-            </p>
+            <p className="text-white/60 max-w-xl mx-auto">Compare ~$25–45/month total to hiring a developer ($8,000+/month) or buying off-the-shelf SaaS ($200–$500/month) that doesn't fit.</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 max-w-7xl mx-auto">
-            {statistics.map((stat, index) => (
-              <StatCard key={index} stat={stat} index={index} />
+          <div className="rounded-2xl bg-white/5 border border-cyan-glow/20 overflow-hidden">
+            <div className="grid grid-cols-3 gap-0 p-4 bg-cyan-glow/10 text-xs font-bold uppercase tracking-wider text-cyan-glow">
+              <div>Service</div><div>Purpose</div><div className="text-right">Monthly (AUD)</div>
+            </div>
+            {costs.map((c, i) => (
+              <div key={i} className="grid grid-cols-3 gap-0 p-4 border-t border-white/5 text-sm">
+                <div className="font-medium text-white/90">{c.item}</div>
+                <div className="text-white/50">{c.detail}</div>
+                <div className="text-right text-cyan-glow font-semibold">{c.cost}</div>
+              </div>
             ))}
+            <div className="grid grid-cols-3 gap-0 p-4 border-t-2 border-cyan-glow/30 bg-cyan-glow/5">
+              <div className="font-bold text-white col-span-2">TOTAL ESTIMATED</div>
+              <div className="text-right text-cyan-glow font-bold text-lg">~$25 – $45/mo</div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Services Grid */}
-      <section id="services" className="py-20 bg-clean-white dark:bg-dark-charcoal relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
+      {/* ===== TESTIMONIALS ===== */}
+      <section className="py-24 bg-deep-navy">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="inline-block text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
-              Our Expertise
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4 text-primary-navy dark:text-clean-white">
-              Expert <span className="text-accent-pink">Solutions</span>
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Client Stories</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3">
+              Trusted by{" "}
+              <span className="text-cyan-glow">Businesses</span>
             </h2>
-            <p className="text-dark-charcoal/70 dark:text-slate-400 max-w-2xl mx-auto text-sm">
-              "Built to meet ATO / IRD / GST requirements from day one"
-            </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((s, idx) => (
-              <div 
-                key={idx} 
-                className="group relative p-8 bg-off-white dark:bg-primary-navy/30 rounded-xl border border-slate-blue/20 dark:border-slate-blue/10 hover:border-accent-pink/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 overflow-hidden"
-              >
-                <div className="text-4xl mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                  {s.icon}
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-glow/30 transition-all">
+                <div className="flex gap-1 mb-4">{[...Array(5)].map((_, j) => <span key={j} className="text-yellow-400 text-sm">★</span>)}</div>
+                <p className="text-sm text-white/70 mb-6 italic leading-relaxed">"{t.text}"</p>
+                <div className="flex items-center gap-3">
+                  <img src={t.img} alt={t.name} className="w-10 h-10 rounded-full border border-cyan-glow/30" />
+                  <div>
+                    <div className="text-sm font-bold text-white">{t.name}</div>
+                    <div className="text-xs text-cyan-glow">{t.role}</div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-display font-bold mb-3 text-primary-navy dark:text-clean-white group-hover:text-accent-pink transition-colors">
-                  {s.title}
-                </h3>
-                <p className="text-dark-charcoal/70 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                  {s.desc}
-                </p>
-                <button 
-                  onClick={() => setActiveService(s.title)}
-                  className="w-full py-3 bg-primary-navy dark:bg-accent-pink hover:bg-accent-pink dark:hover:bg-accent-pink/90 text-clean-white rounded-lg text-xs font-semibold uppercase tracking-wider transition-all shadow-md hover:shadow-lg"
-                >
-                  Start Application
-                </button>
-                <div className="absolute top-0 right-0 w-16 h-16 bg-accent-pink/0 group-hover:bg-accent-pink/5 rounded-bl-xl transition-all" />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Who We Help Section */}
-      <section className="py-20 bg-off-white dark:bg-primary-navy/20 relative">
-        <div className="container mx-auto px-6 relative z-10">
+      {/* ===== WHY THIS PLATFORM ===== */}
+      <section className="py-24 bg-primary-navy">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
-            <span className="inline-block text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
-              Target Audience
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4 text-primary-navy dark:text-clean-white">
-              Built for <span className="text-accent-pink">You</span>
+            <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Impact</span>
+            <h2 className="text-3xl md:text-5xl font-display font-bold mt-3">
+              The Business{" "}
+              <span className="text-cyan-glow">Impact</span>
             </h2>
-            <p className="text-dark-charcoal/70 dark:text-slate-400 max-w-2xl mx-auto text-sm">
-              Specialised accounting for every Australian business segment.
-            </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {audienceSegments.map((item, i) => (
-              <div 
-                key={i} 
-                className="group relative p-6 bg-clean-white dark:bg-primary-navy/30 border border-slate-blue/20 dark:border-slate-blue/10 rounded-lg hover:border-accent-pink/50 hover:shadow-lg transition-all"
-              >
-                <div className="flex items-start gap-3 mb-2">
-                  <div className="w-1 h-6 bg-accent-pink rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <h4 className="font-display font-bold text-primary-navy dark:text-clean-white group-hover:text-accent-pink transition-colors text-sm">
-                    {item.label}
-                  </h4>
+            {[
+              { b: "Save 20+ hrs/week", d: "Clients self-serve — no more chasing" },
+              { b: "Zero paper", d: "Everything digital — forms, signatures, payments" },
+              { b: "Military-grade security", d: "AES-256 encrypted — safer than a bank" },
+              { b: "Get paid faster", d: "Online Stripe payments at purchase time" },
+              { b: "Legal protection", d: "Digital consent with full audit trail" },
+              { b: "Professional image", d: "Branded portal + website = trust & credibility" },
+              { b: "Infinitely scalable", d: "10 clients or 10,000 — scales automatically" },
+              { b: "No developer needed", d: "Settings, content, services — all from admin" },
+              { b: "Australian-specific", d: "TFN, ABN, GST, trusts — built for AU day one" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-cyan-glow/20 transition-all">
+                <span className="w-6 h-6 rounded-full bg-cyan-glow/20 flex items-center justify-center text-cyan-glow text-xs flex-shrink-0 mt-0.5">✓</span>
+                <div>
+                  <div className="text-sm font-bold text-white">{item.b}</div>
+                  <div className="text-xs text-white/50 mt-0.5">{item.d}</div>
                 </div>
-                <p className="text-xs text-dark-charcoal/70 dark:text-slate-400 font-medium italic ml-4">
-                  "{item.benefit}"
-                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Leadership & Onboarding */}
-      <section id="contact" className="py-20 bg-clean-white dark:bg-dark-charcoal relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="grid lg:grid-cols-5 gap-12">
-            <div className="lg:col-span-3">
-              <div className="bg-off-white dark:bg-primary-navy/30 p-10 rounded-xl border border-slate-blue/20 shadow-xl hover:border-accent-pink/30 transition-all">
-                <div className="flex items-center gap-3 mb-8">
-                  <span className="w-1 h-8 bg-accent-pink rounded-full" />
-                  <h3 className="text-3xl font-display font-bold text-primary-navy dark:text-clean-white">
-                    Get Started
-                  </h3>
-                </div>
-                <form onSubmit={handleFormSubmit} className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-5">
-                    <input 
-                      required 
-                      placeholder="First Name" 
-                      className="w-full bg-clean-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-5 py-4 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink focus:ring-2 focus:ring-accent-pink/20 transition-all placeholder:text-dark-charcoal/50 dark:placeholder:text-slate-blue" 
-                    />
-                    <input 
-                      required 
-                      placeholder="Last Name" 
-                      className="w-full bg-clean-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-5 py-4 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink focus:ring-2 focus:ring-accent-pink/20 transition-all placeholder:text-dark-charcoal/50 dark:placeholder:text-slate-blue" 
-                    />
-                  </div>
-                  <input 
-                    required 
-                    type="email" 
-                    placeholder="Business Email" 
-                    className="w-full bg-clean-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-5 py-4 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink focus:ring-2 focus:ring-accent-pink/20 transition-all placeholder:text-dark-charcoal/50 dark:placeholder:text-slate-blue" 
-                  />
-                  <textarea 
-                    rows={4} 
-                    placeholder="Initial Requirements" 
-                    className="w-full bg-clean-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-5 py-4 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink focus:ring-2 focus:ring-accent-pink/20 transition-all placeholder:text-dark-charcoal/50 dark:placeholder:text-slate-blue resize-none" 
-                  />
-                  <button 
-                    type="submit" 
-                    className="w-full bg-accent-pink hover:bg-accent-pink/90 text-clean-white font-bold py-5 rounded-lg text-base transition-all shadow-lg hover:shadow-xl hover:shadow-accent-pink/30 uppercase tracking-wider"
-                  >
-                    Start Onboarding
-                  </button>
-                </form>
-              </div>
-            </div>
-            <div className="lg:col-span-2 flex flex-col gap-8">
-              <div className="bg-off-white dark:bg-primary-navy/30 p-8 rounded-xl border border-slate-blue/20 shadow-xl hover:border-accent-pink/30 transition-all group">
-                <div className="relative w-20 h-20 rounded-xl bg-primary-navy dark:bg-accent-pink/20 mb-6 overflow-hidden border-2 border-accent-pink/30 group-hover:scale-105 transition-transform">
-                  <div className="w-full h-full bg-gradient-to-br from-primary-navy to-accent-pink flex items-center justify-center text-white text-2xl font-bold">F</div>
-                </div>
-                <h4 className="text-xl font-display font-bold text-primary-navy dark:text-clean-white group-hover:text-accent-pink transition-colors">
-                  Formly Team
-                </h4>
-                <p className="text-xs font-semibold uppercase tracking-wider text-accent-pink mb-4 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-                  Leadership, Formly
-                </p>
-                <p className="text-dark-charcoal/70 dark:text-slate-400 text-sm leading-relaxed italic mb-6 border-l-4 border-accent-pink pl-4">
-                  "At Formly, we believe accounting isn't just about numbers — it's about building confidence in your financial decisions."
-                </p>
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-clean-white dark:bg-primary-navy/50 hover:bg-accent-pink/10 transition-all">
-                  <div className="p-3 bg-accent-pink/10 rounded-lg text-lg">🔒</div>
-                  <div>
-                    <div className="text-xs font-semibold text-primary-navy dark:text-clean-white uppercase">SOC 2 Compliant</div>
-                    <div className="text-xs font-medium text-dark-charcoal/70 dark:text-slate-400">AES-256 ENCRYPTED • RBAC SECURED</div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-8 bg-accent-pink/5 rounded-xl border border-accent-pink/20 shadow-sm hover:border-accent-pink/40 transition-all">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="w-1 h-6 bg-accent-pink rounded-full" />
-                  <h4 className="font-bold text-primary-navy dark:text-clean-white text-sm">Compliance Tracking</h4>
-                </div>
-                <div className="space-y-3">
-                  {['BAS Reporting', 'Tax Lodgement', 'Superannuation'].map((t, i) => (
-                    <div 
-                      key={i} 
-                      className="flex justify-between items-center p-3 rounded-lg hover:bg-clean-white/50 dark:hover:bg-primary-navy/30 transition-all group/item"
-                    >
-                      <span className="text-xs font-semibold uppercase tracking-wider text-dark-charcoal/70 dark:text-slate-400 group-hover/item:text-accent-pink transition-colors">
-                        {t}
-                      </span>
-                      <span className="px-3 py-1 bg-accent-pink/20 text-accent-pink text-xs font-semibold rounded-full border border-accent-pink/30">
-                        Automated
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-gradient-to-b from-off-white via-clean-white to-off-white dark:from-slate-950 dark:via-primary-navy dark:to-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-pink/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-slate-blue/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-pink/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'linear-gradient(rgba(229,9,127,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(229,9,127,0.1) 1px, transparent 1px)',
-          backgroundSize: '50px 50px'
-        }} />
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 text-accent-pink font-semibold uppercase tracking-wider text-xs mb-4">
-              <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-              Client Success Stories
-            </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-4 text-primary-navy dark:text-white">
-              What Our <span className="text-accent-pink">Clients</span> Say
-            </h2>
-            <p className="text-dark-charcoal/70 dark:text-slate-300 max-w-2xl mx-auto text-sm">
-              Real feedback from businesses and individuals who trust Formly
-            </p>
-          </div>
-
-          {/* Main Testimonial Display */}
-          <div className="max-w-5xl mx-auto mb-12">
-            <div 
-              className={`relative bg-gradient-to-br from-white/80 to-white/60 dark:from-white/10 dark:to-white/5 backdrop-blur-xl rounded-3xl border border-primary-navy/20 dark:border-white/20 p-8 md:p-12 shadow-2xl transition-all duration-500 ${
-                isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-              }`}
-              style={{
-                boxShadow: '0 20px 60px rgba(229,9,127,0.2), inset 0 1px 0 rgba(49,41,102,0.1)'
-              }}
-            >
-              <div className="absolute -inset-1 bg-gradient-to-r from-accent-pink via-slate-blue to-accent-pink rounded-3xl blur opacity-20 dark:opacity-30 animate-pulse" />
-              
-              <div className="relative z-10">
-                <div className="flex gap-1 mb-6">
-                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                    <span key={i} className="text-2xl text-yellow-400 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-
-                <div className="absolute top-8 right-8 text-6xl text-accent-pink/20 font-serif">"</div>
-
-                <p className="text-lg md:text-xl text-primary-navy/90 dark:text-white/90 mb-8 leading-relaxed italic relative z-10">
-                  {testimonials[currentTestimonial].content}
-                </p>
-
-                <div className="flex items-center gap-4 pt-6 border-t border-primary-navy/10 dark:border-white/10">
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent-pink/50 ring-4 ring-accent-pink/20">
-                      <img 
-                        src={testimonials[currentTestimonial].image} 
-                        alt={testimonials[currentTestimonial].name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-white/20" />
-                  </div>
-                  <div>
-                    <h4 className="text-primary-navy dark:text-white font-bold text-lg">
-                      {testimonials[currentTestimonial].name}
-                    </h4>
-                    <p className="text-accent-pink text-sm font-medium">
-                      {testimonials[currentTestimonial].role}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Testimonial Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                onClick={() => {
-                  setIsAnimating(true);
-                  setTimeout(() => {
-                    setCurrentTestimonial(index);
-                    setIsAnimating(false);
-                  }, 300);
-                }}
-                className={`group relative bg-gradient-to-br from-white/70 to-white/50 dark:from-white/5 dark:to-white/0 backdrop-blur-lg rounded-2xl border border-primary-navy/20 dark:border-white/10 p-6 cursor-pointer transition-all duration-300 hover:border-accent-pink/50 hover:scale-105 hover:shadow-xl ${
-                  currentTestimonial === index ? 'border-accent-pink/50 ring-2 ring-accent-pink/30' : ''
-                }`}
-              >
-                <div className="absolute inset-0 bg-accent-pink/0 group-hover:bg-accent-pink/5 rounded-2xl transition-all duration-300" />
-                
-                <div className="relative z-10">
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <span key={i} className="text-sm text-yellow-400">⭐</span>
-                    ))}
-                  </div>
-
-                  <p className="text-sm text-primary-navy/70 dark:text-white/70 mb-4 line-clamp-3 italic">
-                    {testimonial.content}
-                  </p>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden border border-accent-pink/30">
-                      <img 
-                        src={testimonial.image} 
-                        alt={testimonial.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h5 className="text-primary-navy dark:text-white text-sm font-semibold">
-                        {testimonial.name}
-                      </h5>
-                      <p className="text-accent-pink/80 text-xs">
-                        {testimonial.role}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Navigation Dots */}
-          <div className="flex justify-center gap-2 mt-12">
-            {testimonials.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setIsAnimating(true);
-                  setTimeout(() => {
-                    setCurrentTestimonial(index);
-                    setIsAnimating(false);
-                  }, 300);
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  currentTestimonial === index 
-                    ? 'w-8 bg-accent-pink' 
-                    : 'bg-primary-navy/30 dark:bg-white/30 hover:bg-primary-navy/50 dark:hover:bg-white/50'
-                }`}
-                aria-label={`Go to testimonial ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-16 border-t border-slate-blue/20 bg-primary-navy dark:bg-dark-charcoal relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="grid lg:grid-cols-4 gap-12 mb-12">
-            <div className="lg:col-span-2">
-              <div className="mb-6 flex items-center gap-3 group cursor-default">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent-pink to-[#312966] flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:scale-110 transition-transform">
-                  F
-                </div>
-                <span className="text-xl sm:text-2xl font-bold text-clean-white tracking-tight">
-                  Formly
-                </span>
-              </div>
-              <p className="text-slate-blue max-w-md text-sm leading-relaxed mb-8 italic border-l-4 border-accent-pink pl-4">
-                "Built to protect your business, optimise your tax position, and keep you compliant—so you can grow with confidence."
+      {/* ===== CONTACT / CTA ===== */}
+      <section id="contact" className="py-24 bg-deep-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(78,201,250,0.1),transparent_50%)]" />
+        <div className="max-w-6xl mx-auto px-6 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
+            <div>
+              <span className="text-cyan-glow text-xs font-semibold uppercase tracking-widest">Get Started</span>
+              <h2 className="text-3xl md:text-4xl font-display font-bold mt-3 mb-6">
+                Transform Your Practice{" "}
+                <span className="text-cyan-glow">Today</span>
+              </h2>
+              <p className="text-white/60 mb-8 leading-relaxed">
+                This platform transforms your accounting practice from a paper-based operation into a modern, secure, digital-first business — giving your clients a premium experience while saving your team countless hours every week.
               </p>
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent-pink/10 transition-all group/item">
-                  <div className="w-8 h-8 rounded-lg bg-accent-pink/20 flex items-center justify-center text-base group-hover/item:scale-110 transition-transform flex-shrink-0">
-                    📧
-                  </div>
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-lg">📧</span>
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-blue mb-1">Email</div>
-                    <a href="mailto:contact@formly.com.au" className="text-sm text-clean-white hover:text-accent-pink transition-colors break-all">
-                      contact@formly.com.au
-                    </a>
+                    <div className="text-xs text-white/50 uppercase tracking-wider">Email</div>
+                    <a href="mailto:contact@formly.com.au" className="text-sm text-cyan-glow hover:underline">contact@formly.com.au</a>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent-pink/10 transition-all group/item">
-                  <div className="w-8 h-8 rounded-lg bg-accent-pink/20 flex items-center justify-center text-base group-hover/item:scale-110 transition-transform flex-shrink-0">
-                    📞
-                  </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-lg">📞</span>
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-wider text-slate-blue mb-1">Phone</div>
-                    <div className="space-y-1">
-                      <a href="tel:1300367659" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
-                        1300 FORMLY (1300 367 659)
-                      </a>
-                      <a href="tel:+61390001234" className="block text-sm text-clean-white hover:text-accent-pink transition-colors">
-                        +61 3 9000 1234
-                      </a>
-                    </div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider">Phone</div>
+                    <a href="tel:1300367659" className="text-sm text-cyan-glow hover:underline">1300 FORMLY (1300 367 659)</a>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-lg">📍</span>
+                  <div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider">Locations</div>
+                    <div className="text-sm text-white/80">Melbourne CBD — Level 12, 120 Collins St, VIC 3000</div>
+                    <div className="text-sm text-white/80">Sydney CBD — Level 8, 50 Margaret St, NSW 2000</div>
                   </div>
                 </div>
               </div>
             </div>
+            <div className="p-8 rounded-2xl bg-white/5 border border-cyan-glow/20">
+              <h3 className="text-xl font-bold mb-6">Request a Demo</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <input required placeholder="First Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                  <input required placeholder="Last Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                </div>
+                <input required type="email" placeholder="Business Email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                <input type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                <select className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/60 text-sm outline-none focus:border-cyan-glow transition-colors">
+                  <option value="">Practice Size</option>
+                  <option value="solo">Solo Practitioner</option>
+                  <option value="small">Small (2-5 staff)</option>
+                  <option value="medium">Medium (6-20 staff)</option>
+                  <option value="large">Large (20+ staff)</option>
+                </select>
+                <textarea rows={3} placeholder="Tell us about your practice..." className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30 resize-none" />
+                <button type="submit" className="w-full bg-cyan-glow text-primary-navy font-bold py-4 rounded-lg text-sm uppercase tracking-wider hover:bg-cyan-glow/90 transition-all shadow-lg shadow-cyan-glow/20">
+                  Request Demo
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== FOOTER ===== */}
+      <footer className="py-12 border-t border-white/10 bg-primary-navy">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-4 gap-10 mb-10">
+            <div className="lg:col-span-2">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-glow to-accent-blue flex items-center justify-center text-primary-navy font-bold text-lg">F</div>
+                <span className="text-xl font-bold text-white">Formly</span>
+              </div>
+              <p className="text-sm text-white/50 max-w-md leading-relaxed">
+                Enterprise-grade client portal and practice management platform — built specifically for Australian accounting practices. SOC 2 aligned. AES-256 encrypted. ATO compliant.
+              </p>
+            </div>
             <div>
-              <h4 className="font-bold uppercase tracking-wider text-xs text-accent-pink mb-6 flex items-center gap-2">
-                <span className="w-1 h-4 bg-accent-pink rounded-full" />
-                Quick Links
-              </h4>
-              <ul className="space-y-3 text-xs text-slate-blue font-medium">
-                <li><a href="#services" className="hover:text-accent-pink transition-colors">Services</a></li>
-                <li><a href="#about" className="hover:text-accent-pink transition-colors">About Us</a></li>
-                <li><a href="#testimonials" className="hover:text-accent-pink transition-colors">Testimonials</a></li>
-                <li><a href="#contact" className="hover:text-accent-pink transition-colors">Get Started</a></li>
+              <h4 className="text-cyan-glow text-xs font-bold uppercase tracking-widest mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-sm text-white/50">
+                <li><a href="#problem" className="hover:text-cyan-glow transition-colors">Why Formly</a></li>
+                <li><a href="#features" className="hover:text-cyan-glow transition-colors">Features</a></li>
+                <li><a href="#security" className="hover:text-cyan-glow transition-colors">Security</a></li>
+                <li><a href="#pricing" className="hover:text-cyan-glow transition-colors">Pricing</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold uppercase tracking-wider text-xs text-accent-pink mb-6 flex items-center gap-2">
-                <span className="w-1 h-4 bg-accent-pink rounded-full" />
-                Locations
-              </h4>
-              <ul className="space-y-4 text-xs font-medium text-slate-blue">
-                {[
-                  { name: 'Melbourne CBD', address: 'Level 12, 120 Collins St, VIC 3000' },
-                  { name: 'Sydney CBD', address: 'Level 8, 50 Margaret St, NSW 2000' }
-                ].map((loc, i) => (
-                  <li key={i} className="group">
-                    <span className="text-clean-white block mb-1 group-hover:text-accent-pink transition-colors font-semibold">
-                      {loc.name}
-                    </span>
-                    <span className="text-slate-blue">
-                      {loc.address}
-                    </span>
-                  </li>
-                ))}
+              <h4 className="text-cyan-glow text-xs font-bold uppercase tracking-widest mb-4">Locations</h4>
+              <ul className="space-y-3 text-sm text-white/50">
+                <li><span className="text-white block font-medium">Melbourne CBD</span>Level 12, 120 Collins St, VIC 3000</li>
+                <li><span className="text-white block font-medium">Sydney CBD</span>Level 8, 50 Margaret St, NSW 2000</li>
               </ul>
             </div>
           </div>
-          <div className="pt-8 border-t border-slate-blue/20 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-blue font-medium uppercase tracking-wider">
-            <div className="hover:text-accent-pink transition-colors cursor-default">
-              ©2026 FORMLY — ALL RIGHTS RESERVED
-            </div>
-            <div className="flex gap-8">
-              <button className="hover:text-accent-pink transition-colors relative group">
-                Privacy Charter
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-pink group-hover:w-full transition-all" />
-              </button>
-              <button className="hover:text-accent-pink transition-colors relative group">
-                Security Terms
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-accent-pink group-hover:w-full transition-all" />
-              </button>
+          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40 uppercase tracking-wider">
+            <div>©2026 Formly — All Rights Reserved</div>
+            <div className="flex gap-6">
+              <Link href="/p/privacy-policy" className="hover:text-cyan-glow transition-colors">Privacy Policy</Link>
+              <Link href="/p/terms-of-service" className="hover:text-cyan-glow transition-colors">Terms of Service</Link>
+              <Link href="/p/data-processing-agreement" className="hover:text-cyan-glow transition-colors">DPA</Link>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* Service Inquiry Modal */}
-      {activeService && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-primary-navy/80 backdrop-blur-md" onClick={() => setActiveService(null)} />
-          <div className="relative w-full max-w-xl bg-clean-white dark:bg-primary-navy p-8 rounded-xl border-2 border-accent-pink/30 shadow-2xl">
-            <button onClick={() => setActiveService(null)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-dark-charcoal dark:text-slate-blue hover:text-accent-pink rounded-lg transition-all text-xl">✕</button>
-            <div className="flex items-center gap-3 mb-6">
-              <span className="w-1 h-6 bg-accent-pink rounded-full" />
-              <h3 className="text-2xl font-display font-bold text-primary-navy dark:text-clean-white">
-                Inquiry: <span className="text-accent-pink">{activeService}</span>
-              </h3>
-            </div>
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <input required placeholder="First Name" className="w-full bg-off-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-4 py-3 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink transition-all" />
-                <input required placeholder="Last Name" className="w-full bg-off-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-4 py-3 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink transition-all" />
-              </div>
-              <input required type="email" placeholder="Business Email" className="w-full bg-off-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-4 py-3 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink transition-all" />
-              <input required type="tel" placeholder="Mobile Number" className="w-full bg-off-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-4 py-3 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink transition-all" />
-              <textarea required rows={4} placeholder="Tell us more about your requirements..." className="w-full bg-off-white dark:bg-primary-navy/50 border-2 border-slate-blue/20 dark:border-slate-blue/10 rounded-lg px-4 py-3 text-dark-charcoal dark:text-clean-white outline-none focus:border-accent-pink transition-all resize-none" />
-              <button type="submit" className="w-full bg-accent-pink hover:bg-accent-pink/90 text-clean-white font-bold py-4 rounded-lg transition-all shadow-lg uppercase tracking-wider text-sm">
-                Submit Inquiry
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-8 right-8 z-[100] bg-clean-white dark:bg-primary-navy border-2 border-accent-pink/50 px-6 py-4 rounded-lg shadow-2xl flex items-center gap-3">
-          <span className="w-2 h-2 bg-accent-pink rounded-full animate-pulse" />
-          <span className="text-sm font-medium text-primary-navy dark:text-clean-white">{toast}</span>
-          <button onClick={() => setToast(null)} className="text-dark-charcoal/50 hover:text-accent-pink ml-4">✕</button>
+        <div className="fixed bottom-6 right-6 z-[100] bg-primary-navy border border-cyan-glow/50 px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3">
+          <span className="w-2 h-2 bg-cyan-glow rounded-full animate-pulse" />
+          <span className="text-sm text-white">{toast}</span>
+          <button onClick={() => setToast(null)} className="text-white/40 hover:text-cyan-glow ml-3">✕</button>
         </div>
       )}
     </div>
