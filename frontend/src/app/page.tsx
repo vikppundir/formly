@@ -148,7 +148,10 @@ export default function PublicHomePage() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-glow to-accent-blue flex items-center justify-center text-primary-navy font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">F</div>
-            <span className="text-xl font-bold tracking-tight text-white">Formly</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xl font-bold tracking-tight text-white">Formly</span>
+              <span className="text-[9px] text-cyan-glow/70 uppercase tracking-widest font-medium">by Bhalekar</span>
+            </div>
           </Link>
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/80">
             <a href="#problem" className="hover:text-cyan-glow transition-colors">Why Formly</a>
@@ -189,7 +192,7 @@ export default function PublicHomePage() {
         <div className="max-w-6xl mx-auto px-6 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-cyan-glow/10 border border-cyan-glow/30 rounded-full text-xs font-semibold uppercase tracking-widest text-cyan-glow mb-8">
             <span className="w-2 h-2 bg-cyan-glow rounded-full animate-pulse" />
-            Enterprise-Grade • ATO Compliant • SOC 2 Aligned
+            A Bhalekar Product • Enterprise-Grade • ATO Compliant • SOC 2 Aligned
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-[1.1]">
             Your Secure{" "}
@@ -550,6 +553,51 @@ export default function PublicHomePage() {
         </div>
       </section>
 
+      {/* ===== CUSTOM DEVELOPMENT ===== */}
+      <section className="py-24 bg-deep-navy relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(78,201,250,0.12),transparent_50%)]" />
+        <div className="max-w-5xl mx-auto px-6 relative z-10">
+          <div className="p-10 md:p-14 rounded-3xl bg-gradient-to-br from-cyan-glow/10 via-white/5 to-transparent border border-cyan-glow/30 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-glow/10 border border-cyan-glow/30 rounded-full text-xs font-bold uppercase tracking-widest text-cyan-glow mb-6">
+              <span className="w-2 h-2 bg-cyan-glow rounded-full animate-pulse" />
+              Fully Customisable
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6">
+              Need Changes?{" "}
+              <span className="text-cyan-glow">We'll Build It.</span>
+            </h2>
+            <p className="text-white/70 text-lg max-w-3xl mx-auto mb-8 leading-relaxed">
+              This platform is fully customisable to your exact requirements. Whether you need new features, workflow changes, additional integrations, or a completely tailored module — our engineering team at <a href="https://bhalekar.ai" target="_blank" rel="noopener noreferrer" className="text-cyan-glow font-semibold hover:underline">Bhalekar Consulting</a> will deliver it.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+              {[
+                { icon: "🔧", title: "Custom Features", desc: "New modules, workflows, reports tailored to your practice" },
+                { icon: "🔗", title: "New Integrations", desc: "Connect with Xero, MYOB, QuickBooks, or any system" },
+                { icon: "🎨", title: "White-Label Branding", desc: "Your logo, colours, domain — fully branded as yours" },
+                { icon: "🚀", title: "Dedicated Support", desc: "Priority engineering support and ongoing maintenance" },
+              ].map((item, i) => (
+                <div key={i} className="p-5 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-glow/30 transition-all text-left">
+                  <div className="text-2xl mb-3">{item.icon}</div>
+                  <div className="text-sm font-bold text-white mb-1">{item.title}</div>
+                  <div className="text-xs text-white/50 leading-relaxed">{item.desc}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-white/50 text-sm mb-6 italic">
+              "Your requirements are our priority. If you can imagine it, we can build it — and we'll integrate it seamlessly into your existing platform."
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="https://bhalekar.ai/contact" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-cyan-glow text-primary-navy font-bold rounded-lg text-sm uppercase tracking-wider hover:bg-cyan-glow/90 transition-all shadow-lg shadow-cyan-glow/20 hover:scale-105">
+                Discuss Your Requirements
+              </a>
+              <a href="tel:1800434005" className="px-8 py-4 border-2 border-cyan-glow/40 text-white font-semibold rounded-lg text-sm hover:border-cyan-glow hover:bg-cyan-glow/10 transition-all">
+                Call 1800 434 005
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===== CONTACT / CTA ===== */}
       <section id="contact" className="py-24 bg-deep-navy relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(78,201,250,0.1),transparent_50%)]" />
@@ -569,22 +617,29 @@ export default function PublicHomePage() {
                   <span className="text-lg">📧</span>
                   <div>
                     <div className="text-xs text-white/50 uppercase tracking-wider">Email</div>
-                    <a href="mailto:contact@formly.com.au" className="text-sm text-cyan-glow hover:underline">contact@formly.com.au</a>
+                    <a href="mailto:info@bhalekar.com.au" className="text-sm text-cyan-glow hover:underline">info@bhalekar.com.au</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
                   <span className="text-lg">📞</span>
                   <div>
                     <div className="text-xs text-white/50 uppercase tracking-wider">Phone</div>
-                    <a href="tel:1300367659" className="text-sm text-cyan-glow hover:underline">1300 FORMLY (1300 367 659)</a>
+                    <a href="tel:1800434005" className="text-sm text-cyan-glow hover:underline">1800 434 005</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
                   <span className="text-lg">📍</span>
                   <div>
-                    <div className="text-xs text-white/50 uppercase tracking-wider">Locations</div>
-                    <div className="text-sm text-white/80">Melbourne CBD — Level 12, 120 Collins St, VIC 3000</div>
-                    <div className="text-sm text-white/80">Sydney CBD — Level 8, 50 Margaret St, NSW 2000</div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider">Office</div>
+                    <div className="text-sm text-white/80">Unit 207, 111 Overton Road</div>
+                    <div className="text-sm text-white/80">Williams Landing, VIC 3027, Australia</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <span className="text-lg">🌐</span>
+                  <div>
+                    <div className="text-xs text-white/50 uppercase tracking-wider">Website</div>
+                    <a href="https://bhalekar.ai" target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-glow hover:underline">bhalekar.ai</a>
                   </div>
                 </div>
               </div>
@@ -620,12 +675,15 @@ export default function PublicHomePage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid lg:grid-cols-4 gap-10 mb-10">
             <div className="lg:col-span-2">
-              <div className="flex items-center gap-2.5 mb-4">
+              <div className="flex items-center gap-2.5 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-glow to-accent-blue flex items-center justify-center text-primary-navy font-bold text-lg">F</div>
-                <span className="text-xl font-bold text-white">Formly</span>
+                <div>
+                  <span className="text-xl font-bold text-white block leading-tight">Formly</span>
+                  <span className="text-[10px] text-cyan-glow/70 uppercase tracking-widest font-medium">by Bhalekar Consulting</span>
+                </div>
               </div>
-              <p className="text-sm text-white/50 max-w-md leading-relaxed">
-                Enterprise-grade client portal and practice management platform — built specifically for Australian accounting practices. SOC 2 aligned. AES-256 encrypted. ATO compliant.
+              <p className="text-sm text-white/50 max-w-md leading-relaxed mt-3">
+                Enterprise-grade client portal and practice management platform — built specifically for Australian accounting practices by <a href="https://bhalekar.ai" target="_blank" rel="noopener noreferrer" className="text-cyan-glow hover:underline">Bhalekar Consulting</a>. SOC 2 aligned. AES-256 encrypted. ATO compliant.
               </p>
             </div>
             <div>
@@ -635,18 +693,20 @@ export default function PublicHomePage() {
                 <li><a href="#features" className="hover:text-cyan-glow transition-colors">Features</a></li>
                 <li><a href="#security" className="hover:text-cyan-glow transition-colors">Security</a></li>
                 <li><a href="#pricing" className="hover:text-cyan-glow transition-colors">Pricing</a></li>
+                <li><a href="https://bhalekar.ai" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-glow transition-colors">Bhalekar Consulting</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-cyan-glow text-xs font-bold uppercase tracking-widest mb-4">Locations</h4>
+              <h4 className="text-cyan-glow text-xs font-bold uppercase tracking-widest mb-4">Contact</h4>
               <ul className="space-y-3 text-sm text-white/50">
-                <li><span className="text-white block font-medium">Melbourne CBD</span>Level 12, 120 Collins St, VIC 3000</li>
-                <li><span className="text-white block font-medium">Sydney CBD</span>Level 8, 50 Margaret St, NSW 2000</li>
+                <li><a href="tel:1800434005" className="hover:text-cyan-glow transition-colors">1800 434 005</a></li>
+                <li><a href="mailto:info@bhalekar.com.au" className="hover:text-cyan-glow transition-colors">info@bhalekar.com.au</a></li>
+                <li><span className="text-white block font-medium">Williams Landing</span>Unit 207, 111 Overton Rd, VIC 3027</li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/40 uppercase tracking-wider">
-            <div>©2026 Formly — All Rights Reserved</div>
+            <div>©2026 Formly — A Product of <a href="https://bhalekar.ai" target="_blank" rel="noopener noreferrer" className="text-cyan-glow/70 hover:text-cyan-glow">Bhalekar Pty Ltd</a></div>
             <div className="flex gap-6">
               <Link href="/p/privacy-policy" className="hover:text-cyan-glow transition-colors">Privacy Policy</Link>
               <Link href="/p/terms-of-service" className="hover:text-cyan-glow transition-colors">Terms of Service</Link>
