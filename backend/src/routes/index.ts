@@ -18,3 +18,5 @@ export { registerSpouseRoutes } from "./spouse.routes.js";
 export { registerCmsRoutes } from "./cms.routes.js";
 // Forgot password
 export { registerForgotPasswordRoutes } from "./forgot-password.routes.js";
+// Contact / Demo request (public)
+export { registerContactRoutes } from "./contact.routes.js";

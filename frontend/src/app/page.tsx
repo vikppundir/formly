@@ -46,6 +46,7 @@ export default function PublicHomePage() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const statsVis = useInView(0.3);
 
   useEffect(() => {
@@ -54,10 +55,37 @@ export default function PublicHomePage() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setToast("Thank you! We'll be in touch within one business day.");
-    setTimeout(() => setToast(null), 4000);
+    if (submitting) return;
+    setSubmitting(true);
+
+    const fd = new FormData(e.currentTarget);
+    const body = {
+      firstName: fd.get("firstName") as string,
+      lastName: fd.get("lastName") as string,
+      email: fd.get("email") as string,
+      phone: fd.get("phone") as string,
+      practiceSize: fd.get("practiceSize") as string,
+      message: fd.get("message") as string,
+    };
+
+    try {
+      const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+      const res = await fetch(`${API}/contact/demo-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      e.currentTarget.reset();
+      setToast("Thank you! We'll be in touch within one business day.");
+    } catch {
+      setToast("Something went wrong. Please email us directly at info@bhalekar.com.au");
+    } finally {
+      setSubmitting(false);
+      setTimeout(() => setToast(null), 5000);
+    }
   }
 
   /* ---------- DATA ---------- */
@@ -648,21 +676,21 @@ export default function PublicHomePage() {
               <h3 className="text-xl font-bold mb-6">Request a Demo</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <input required placeholder="First Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
-                  <input required placeholder="Last Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                  <input name="firstName" required placeholder="First Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                  <input name="lastName" required placeholder="Last Name" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
                 </div>
-                <input required type="email" placeholder="Business Email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
-                <input type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
-                <select className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/60 text-sm outline-none focus:border-cyan-glow transition-colors">
+                <input name="email" required type="email" placeholder="Business Email" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                <input name="phone" type="tel" placeholder="Phone Number" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30" />
+                <select name="practiceSize" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/60 text-sm outline-none focus:border-cyan-glow transition-colors">
                   <option value="">Practice Size</option>
-                  <option value="solo">Solo Practitioner</option>
-                  <option value="small">Small (2-5 staff)</option>
-                  <option value="medium">Medium (6-20 staff)</option>
-                  <option value="large">Large (20+ staff)</option>
+                  <option value="Solo Practitioner">Solo Practitioner</option>
+                  <option value="Small (2-5 staff)">Small (2-5 staff)</option>
+                  <option value="Medium (6-20 staff)">Medium (6-20 staff)</option>
+                  <option value="Large (20+ staff)">Large (20+ staff)</option>
                 </select>
-                <textarea rows={3} placeholder="Tell us about your practice..." className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30 resize-none" />
-                <button type="submit" className="w-full bg-cyan-glow text-primary-navy font-bold py-4 rounded-lg text-sm uppercase tracking-wider hover:bg-cyan-glow/90 transition-all shadow-lg shadow-cyan-glow/20">
-                  Request Demo
+                <textarea name="message" rows={3} placeholder="Tell us about your practice..." className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-cyan-glow transition-colors placeholder:text-white/30 resize-none" />
+                <button type="submit" disabled={submitting} className="w-full bg-cyan-glow text-primary-navy font-bold py-4 rounded-lg text-sm uppercase tracking-wider hover:bg-cyan-glow/90 transition-all shadow-lg shadow-cyan-glow/20 disabled:opacity-60 disabled:cursor-not-allowed">
+                  {submitting ? "Sending..." : "Request Demo"}
                 </button>
               </form>
             </div>

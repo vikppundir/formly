@@ -38,6 +38,8 @@ import {
   registerCmsRoutes,
   // Forgot password
   registerForgotPasswordRoutes,
+  // Contact / Demo request (public)
+  registerContactRoutes,
 } from "./routes/index.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { logger } from "./utils/logger.js";
@@ -112,6 +114,8 @@ async function build() {
   await registerCmsRoutes(app, authService, prisma);
   // Forgot password (public)
   await registerForgotPasswordRoutes(app, prisma);
+  // Contact / Demo request (public)
+  await registerContactRoutes(app, prisma);
 
   app.get("/", (_req, reply) =>
     reply.send({ name: "Formly API", version: "1.0.0", health: "/health", docs: "API base" })
