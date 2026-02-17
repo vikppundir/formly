@@ -229,7 +229,7 @@ export default function ServicesPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-indigo-700 w-full sm:w-auto"
+          className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-teal-700 w-full sm:w-auto"
         >
           Create service
         </button>
@@ -339,7 +339,7 @@ export default function ServicesPage() {
                         {s.allowedTypes.map((t) => (
                           <span
                             key={t}
-                            className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                            className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
                           >
                             {t}
                           </span>
@@ -376,7 +376,7 @@ export default function ServicesPage() {
                         <button
                           type="button"
                           onClick={() => openEdit(s)}
-                          className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline"
+                          className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline"
                         >
                           Edit
                         </button>
@@ -575,7 +575,7 @@ export default function ServicesPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : modal === "create" ? "Create" : "Save"}
                 </button>

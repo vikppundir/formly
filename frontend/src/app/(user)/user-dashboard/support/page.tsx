@@ -180,7 +180,7 @@ export default function UserSupportPage() {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:opacity-90 transition-opacity shadow-lg shadow-[#E91E8C]/20"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:opacity-90 transition-opacity shadow-lg shadow-[#0891b2]/20"
         >
           + New Ticket
         </button>
@@ -201,12 +201,12 @@ export default function UserSupportPage() {
       {/* Tickets List */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#E91E8C]/20 to-[#c4177a]/10 flex items-center justify-center">
-            <svg className="w-8 h-8 text-[#E91E8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#0891b2]/20 to-[#0e7490]/10 flex items-center justify-center">
+            <svg className="w-8 h-8 text-[#0891b2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
           </div>
@@ -219,7 +219,7 @@ export default function UserSupportPage() {
             <div
               key={ticket.id}
               onClick={() => loadTicketDetail(ticket.id)}
-              className="p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:shadow-lg hover:border-[#E91E8C]/30 transition-all cursor-pointer"
+              className="p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:shadow-lg hover:border-[#0891b2]/30 transition-all cursor-pointer"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -240,7 +240,7 @@ export default function UserSupportPage() {
                     {new Date(ticket.createdAt).toLocaleDateString()}
                   </p>
                   {ticket._count.replies > 0 && (
-                    <p className="text-[#E91E8C] font-medium">{ticket._count.replies} replies</p>
+                    <p className="text-[#0891b2] font-medium">{ticket._count.replies} replies</p>
                   )}
                 </div>
               </div>
@@ -252,7 +252,7 @@ export default function UserSupportPage() {
       {/* Create Ticket Modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-white dark:bg-[#1a1840] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-white dark:bg-[#020617] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-200 dark:border-white/10">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Create Support Ticket</h3>
             </div>
@@ -270,7 +270,7 @@ export default function UserSupportPage() {
                   onChange={(e) => setSubject(e.target.value)}
                   required
                   minLength={5}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                   placeholder="Brief summary of your issue"
                 />
               </div>
@@ -280,7 +280,7 @@ export default function UserSupportPage() {
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                   >
                     <option value="general">General</option>
                     <option value="technical">Technical</option>
@@ -294,7 +294,7 @@ export default function UserSupportPage() {
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -311,7 +311,7 @@ export default function UserSupportPage() {
                   required
                   minLength={10}
                   rows={5}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C] resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2] resize-none"
                   placeholder="Describe your issue in detail..."
                 />
               </div>
@@ -326,7 +326,7 @@ export default function UserSupportPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white hover:opacity-90 disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white hover:opacity-90 disabled:opacity-50"
                 >
                   {submitting ? "Creating..." : "Create Ticket"}
                 </button>
@@ -339,7 +339,7 @@ export default function UserSupportPage() {
       {/* Ticket Detail Modal */}
       {selectedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-white dark:bg-[#1a1840] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-2xl bg-white dark:bg-[#020617] rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-200 dark:border-white/10 flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -364,7 +364,7 @@ export default function UserSupportPage() {
               {/* Original message */}
               <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white text-sm font-medium">
                     {user?.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -383,15 +383,15 @@ export default function UserSupportPage() {
                   key={reply.id}
                   className={`p-4 rounded-xl ${
                     reply.isAdmin
-                      ? "bg-[#2E2A5E]/10 dark:bg-[#2E2A5E]/30 ml-4"
+                      ? "bg-[#0f172a]/10 dark:bg-[#0f172a]/30 ml-4"
                       : "bg-slate-50 dark:bg-white/5 mr-4"
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
                       reply.isAdmin
-                        ? "bg-gradient-to-br from-[#2E2A5E] to-[#3d3778]"
-                        : "bg-gradient-to-br from-[#E91E8C] to-[#c4177a]"
+                        ? "bg-gradient-to-br from-[#0f172a] to-[#3d3778]"
+                        : "bg-gradient-to-br from-[#0891b2] to-[#0e7490]"
                     }`}>
                       {reply.user.name.charAt(0).toUpperCase()}
                     </div>
@@ -399,7 +399,7 @@ export default function UserSupportPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-slate-900 dark:text-white text-sm">{reply.user.name}</p>
                         {reply.isAdmin && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-[#2E2A5E] text-white">Support</span>
+                          <span className="px-2 py-0.5 rounded text-xs bg-[#0f172a] text-white">Support</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500 dark:text-white/50">
@@ -426,12 +426,12 @@ export default function UserSupportPage() {
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     placeholder="Type your reply..."
-                    className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                   />
                   <button
                     type="submit"
                     disabled={sendingReply || !replyMessage.trim()}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:opacity-90 disabled:opacity-50"
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:opacity-90 disabled:opacity-50"
                   >
                     {sendingReply ? "..." : "Send"}
                   </button>

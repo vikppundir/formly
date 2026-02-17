@@ -216,7 +216,7 @@ export default function AccountDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -294,7 +294,7 @@ export default function AccountDetailPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all disabled:opacity-50"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -303,7 +303,7 @@ export default function AccountDetailPage() {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-6 py-3 rounded-xl border border-[#E91E8C] text-[#E91E8C] font-medium hover:bg-[#E91E8C]/10 transition-all disabled:opacity-50"
+              className="px-6 py-3 rounded-xl border border-[#0891b2] text-[#0891b2] font-medium hover:bg-[#0891b2]/10 transition-all disabled:opacity-50"
             >
               {submitting ? "Submitting..." : "Submit for Review"}
             </button>
@@ -315,7 +315,7 @@ export default function AccountDetailPage() {
       <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 p-6 mt-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Agreements & Signed Documents</h2>
-          <a href="/user-dashboard/consents" className="text-sm text-[#E91E8C] hover:underline">
+          <a href="/user-dashboard/consents" className="text-sm text-[#0891b2] hover:underline">
             Manage Consents
           </a>
         </div>
@@ -333,7 +333,7 @@ export default function AccountDetailPage() {
                 <div className="flex items-center gap-3">
                   <svg className="w-5 h-5 text-green-500 dark:text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <div>
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-medium text-sm text-slate-900 dark:text-white hover:text-[#E91E8C] transition-colors">{item.label}</a>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-medium text-sm text-slate-900 dark:text-white hover:text-[#0891b2] transition-colors">{item.label}</a>
                     {item.date && (
                       <p className="text-xs text-slate-400 dark:text-white/40">Accepted on {new Date(item.date).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}</p>
                     )}
@@ -376,7 +376,7 @@ export default function AccountDetailPage() {
         {/* Link to sign pending consents */}
         {(!account.legalConsents || !account.legalConsents.some((c) => c.consentType === "TAX_AGENT_AUTHORITY")) && (
           <div className="mt-3">
-            <a href="/user-dashboard/consents" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors">
+            <a href="/user-dashboard/consents" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
               Sign Required Documents
             </a>
@@ -584,7 +584,7 @@ function IndividualForm({
               }));
               setAbnLookupResult(null);
             }}
-            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have an ABN?</span>
@@ -712,7 +712,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.gstRegistered || false}
             onChange={(e) => setForm((f) => ({ ...f, gstRegistered: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Are you registered for GST?</span>
@@ -730,7 +730,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.hasMedicalCard || false}
             onChange={(e) => setForm((f) => ({ ...f, hasMedicalCard: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have a Health Care / Medicare Card?</span>
@@ -842,7 +842,7 @@ function IndividualForm({
                     name="spouseInAustralia"
                     checked={form.spouseInAustralia === true}
                     onChange={() => setForm((f) => ({ ...f, spouseInAustralia: true }))}
-                    className="w-4 h-4 text-[#E91E8C] focus:ring-[#E91E8C]"
+                    className="w-4 h-4 text-[#0891b2] focus:ring-[#0891b2]"
                   />
                   <span className="text-sm text-slate-700 dark:text-white/80">Yes, in Australia</span>
                 </label>
@@ -852,7 +852,7 @@ function IndividualForm({
                     name="spouseInAustralia"
                     checked={form.spouseInAustralia === false}
                     onChange={() => setForm((f) => ({ ...f, spouseInAustralia: false, spouseStatus: undefined }))}
-                    className="w-4 h-4 text-[#E91E8C] focus:ring-[#E91E8C]"
+                    className="w-4 h-4 text-[#0891b2] focus:ring-[#0891b2]"
                   />
                   <span className="text-sm text-slate-700 dark:text-white/80">No, overseas</span>
                 </label>
@@ -900,7 +900,7 @@ function IndividualForm({
                       />
                       {checkingSpouseEmail && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <div className="w-5 h-5 border-2 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
                     </div>
@@ -941,7 +941,7 @@ function IndividualForm({
                       type="button"
                       onClick={handleSendSpouseInvite}
                       disabled={sendingSpouseInvite || !form.spouseName || !form.spouseEmail}
-                      className="px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors disabled:opacity-50"
+                      className="px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors disabled:opacity-50"
                     >
                       {sendingSpouseInvite ? "Sending..." : form.spouseStatus === "PENDING" ? "Resend Invitation" : "Send Invitation"}
                     </button>
@@ -1025,7 +1025,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.hasRentalIncome || false}
             onChange={(e) => setForm((f) => ({ ...f, hasRentalIncome: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have rental property income?</span>
@@ -1177,7 +1177,7 @@ function RentalPropertiesSection({
         <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Enter your ownership share (e.g. 100 for sole owner, 50 for 50%)</p>
       </div>
       <div className="flex gap-2 pt-1">
-        <button onClick={onSubmit} disabled={saving} className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
+        <button onClick={onSubmit} disabled={saving} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
           {saving ? "Saving..." : submitLabel}
         </button>
         <button onClick={onCancel} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
@@ -1210,14 +1210,14 @@ function RentalPropertiesSection({
                 <div className="flex items-center justify-between p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-[#E91E8C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                      <svg className="w-4 h-4 text-[#0891b2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                       <span className="font-medium text-slate-900 dark:text-white text-sm truncate">{p.address}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-white/50">
                       {p.suburb && <span>{p.suburb}</span>}
                       {p.state && <span>{p.state}</span>}
                       {p.postcode && <span>{p.postcode}</span>}
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium">
                         {Number(p.ownershipPercent)}% ownership
                       </span>
                     </div>
@@ -1225,7 +1225,7 @@ function RentalPropertiesSection({
                   <div className="flex items-center gap-1 ml-3">
                     <button
                       onClick={() => startEdit(p)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-[#E91E8C] hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                      className="p-2 rounded-lg text-slate-400 hover:text-[#0891b2] hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                       title="Edit"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -1262,7 +1262,7 @@ function RentalPropertiesSection({
       ) : (
         <button
           onClick={() => { setShowAddForm(true); setError(""); }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
           Add Property
@@ -1559,7 +1559,7 @@ function CompanyForm({
             type="checkbox"
             checked={form.postalSameAsBusiness !== false}
             onChange={(e) => setForm((f) => ({ ...f, postalSameAsBusiness: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
           />
           <span className="text-sm text-slate-700 dark:text-white/80">Same as business address</span>
         </label>
@@ -1626,15 +1626,15 @@ function CompanyForm({
 
       {/* Self (account owner) — always first in the list, not removable */}
       <div className="sm:col-span-3">
-        <div className="p-4 rounded-xl border-2 border-[#E91E8C]/30 bg-gradient-to-r from-[#E91E8C]/5 to-transparent dark:from-[#E91E8C]/10">
+        <div className="p-4 rounded-xl border-2 border-[#0891b2]/30 bg-gradient-to-r from-[#0891b2]/5 to-transparent dark:from-[#0891b2]/10">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-[#E91E8C]/10 flex items-center justify-center text-[#E91E8C] font-bold text-sm shrink-0">
+            <div className="w-9 h-9 rounded-full bg-[#0891b2]/10 flex items-center justify-center text-[#0891b2] font-bold text-sm shrink-0">
               {ownerName ? ownerName.charAt(0).toUpperCase() : "Y"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-slate-900 dark:text-white">{ownerName || "You"}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium uppercase tracking-wider">Owner</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium uppercase tracking-wider">Owner</span>
               </div>
               <span className="text-xs text-slate-400 dark:text-white/40">{ownerEmail}</span>
             </div>
@@ -1646,7 +1646,7 @@ function CompanyForm({
                 type="checkbox"
                 checked={form.selfIsDirector !== false}
                 onChange={(e) => setForm((f) => ({ ...f, selfIsDirector: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+                className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
               />
               <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
             </label>
@@ -1655,7 +1655,7 @@ function CompanyForm({
                 type="checkbox"
                 checked={form.selfIsShareholder === true}
                 onChange={(e) => setForm((f) => ({ ...f, selfIsShareholder: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
+                className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
               />
               <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
             </label>
@@ -1705,11 +1705,11 @@ function CompanyForm({
                   </div>
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={editForm.isDirector} onChange={(e) => setEditForm((f) => ({ ...f, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
+                      <input type="checkbox" checked={editForm.isDirector} onChange={(e) => setEditForm((f) => ({ ...f, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
                       <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={editForm.isShareholder} onChange={(e) => setEditForm((f) => ({ ...f, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
+                      <input type="checkbox" checked={editForm.isShareholder} onChange={(e) => setEditForm((f) => ({ ...f, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
                       <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
                     </label>
                   </div>
@@ -1837,11 +1837,11 @@ function CompanyForm({
               <label className="block text-xs font-medium text-slate-600 dark:text-white/70 mb-2">Role *</label>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={newDirector.isDirector} onChange={(e) => setNewDirector((d) => ({ ...d, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
+                  <input type="checkbox" checked={newDirector.isDirector} onChange={(e) => setNewDirector((d) => ({ ...d, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
                   <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={newDirector.isShareholder} onChange={(e) => setNewDirector((d) => ({ ...d, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
+                  <input type="checkbox" checked={newDirector.isShareholder} onChange={(e) => setNewDirector((d) => ({ ...d, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
                   <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
                 </label>
               </div>
@@ -1856,7 +1856,7 @@ function CompanyForm({
             )}
 
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddDirector} disabled={addingDirector} className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
+              <button onClick={handleAddDirector} disabled={addingDirector} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
                 {addingDirector ? "Sending Invitation..." : emailStatus?.exists ? "Send Invitation" : "Send Registration Invite"}
               </button>
               <button onClick={() => { setShowAddDirector(false); setDirectorError(""); setEmailStatus(null); }} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">Cancel</button>
@@ -1865,7 +1865,7 @@ function CompanyForm({
         ) : (
           <button
             onClick={() => { setShowAddDirector(true); setDirectorError(""); setDirectorSuccess(""); }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             Add Director / Shareholder
@@ -2127,7 +2127,7 @@ function TrustForm({
           <button
             type="button"
             onClick={() => setShowAddPartner(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -2171,7 +2171,7 @@ function TrustForm({
                   />
                   {checkingEmail && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
@@ -2228,7 +2228,7 @@ function TrustForm({
                 type="button"
                 onClick={handleAddPartner}
                 disabled={addingPartner || !newPartner.email}
-                className="px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors disabled:opacity-50"
               >
                 {addingPartner ? "Sending Invitation..." : "Send Invitation"}
               </button>
@@ -2250,7 +2250,7 @@ function TrustForm({
         {/* Partners List */}
         {loadingPartners ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-8 h-8 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : partners.length === 0 ? (
           <div className="text-center py-8 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
@@ -2268,7 +2268,7 @@ function TrustForm({
                 className="flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-medium">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-medium">
                     {(partner.name || partner.email).charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -2297,7 +2297,7 @@ function TrustForm({
                     <button
                       type="button"
                       onClick={() => handleResendInvitation(partner.id)}
-                      className="text-xs text-[#E91E8C] hover:underline"
+                      className="text-xs text-[#0891b2] hover:underline"
                     >
                       Resend
                     </button>
@@ -2567,15 +2567,15 @@ function PartnershipForm({
       </div>
 
       {/* Self (account owner) — always first, not removable */}
-      <div className="p-4 rounded-xl border-2 border-[#E91E8C]/30 bg-gradient-to-r from-[#E91E8C]/5 to-transparent dark:from-[#E91E8C]/10">
+      <div className="p-4 rounded-xl border-2 border-[#0891b2]/30 bg-gradient-to-r from-[#0891b2]/5 to-transparent dark:from-[#0891b2]/10">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-[#E91E8C]/10 flex items-center justify-center text-[#E91E8C] font-bold text-sm shrink-0">
+          <div className="w-9 h-9 rounded-full bg-[#0891b2]/10 flex items-center justify-center text-[#0891b2] font-bold text-sm shrink-0">
             {ownerName ? ownerName.charAt(0).toUpperCase() : "Y"}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm text-slate-900 dark:text-white">{ownerName || "You"}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium uppercase tracking-wider">Owner</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium uppercase tracking-wider">Owner</span>
             </div>
             <span className="text-xs text-slate-400 dark:text-white/40">{ownerEmail}</span>
           </div>
@@ -2777,7 +2777,7 @@ function PartnershipForm({
             </div>
 
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddPartner} disabled={addingPartner} className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
+              <button onClick={handleAddPartner} disabled={addingPartner} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
                 {addingPartner ? "Sending Invitation..." : emailExists?.exists ? "Send Invitation" : "Send Registration Invite"}
               </button>
               <button onClick={() => { setShowAddPartner(false); setPartnerError(""); setEmailExists(null); setNewPartner({ email: "", name: "", role: "", ownershipPercent: "" }); }} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">Cancel</button>
@@ -2786,7 +2786,7 @@ function PartnershipForm({
         ) : (
           <button
             onClick={() => { setShowAddPartner(true); setPartnerError(""); setPartnerSuccess(""); }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             Add Partner

@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Formly | Professional Accounting Services",
+  title: "Onboard | Professional Accounting Services",
   description: "Smart, simple, and reliable accounting solutions that help you focus on what matters — growing your business.",
   icons: {
     icon: "/favicon.svg",

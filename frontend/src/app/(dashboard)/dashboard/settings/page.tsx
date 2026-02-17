@@ -280,7 +280,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -305,7 +305,7 @@ export default function SettingsPage() {
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               tab === t
-                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                ? "bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300"
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 type="text"
                 value={settings.app_name || ""}
                 onChange={(e) => updateSetting("app_name", e.target.value)}
-                placeholder="Formly"
+                placeholder="Onboard"
                 className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
               />
             </div>
@@ -473,7 +473,7 @@ export default function SettingsPage() {
                 "social_instagram", "social_youtube"
               ])}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Website Settings"}
             </button>
@@ -592,7 +592,7 @@ export default function SettingsPage() {
             <button
               onClick={() => saveSettings(emailKeys)}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Email Settings"}
             </button>
@@ -667,7 +667,7 @@ export default function SettingsPage() {
             <button
               onClick={() => saveSettings(smsKeys)}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save SMS Settings"}
             </button>
@@ -714,7 +714,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => updateSetting("email_verification_enabled", settings.email_verification_enabled === "true" ? "false" : "true")}
                 className={`relative w-12 h-6 rounded-full transition-colors ${
-                  settings.email_verification_enabled === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                  settings.email_verification_enabled === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                 }`}
               >
                 <span
@@ -733,7 +733,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => updateSetting("phone_verification_enabled", settings.phone_verification_enabled === "true" ? "false" : "true")}
                 className={`relative w-12 h-6 rounded-full transition-colors ${
-                  settings.phone_verification_enabled === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                  settings.phone_verification_enabled === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                 }`}
               >
                 <span
@@ -774,7 +774,7 @@ export default function SettingsPage() {
             <button
               onClick={() => saveSettings(verifyKeys)}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Verification Settings"}
             </button>
@@ -810,7 +810,7 @@ export default function SettingsPage() {
                 });
                 setTemplateModal(true);
               }}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700"
+              className="px-4 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700"
             >
               + New Template
             </button>
@@ -850,7 +850,7 @@ export default function SettingsPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => previewTemplate(t.id)}
-                            className="text-slate-500 hover:text-indigo-600"
+                            className="text-slate-500 hover:text-teal-600"
                             title="Preview"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -863,7 +863,7 @@ export default function SettingsPage() {
                               setEditingTemplate(t);
                               setTemplateModal(true);
                             }}
-                            className="text-slate-500 hover:text-indigo-600"
+                            className="text-slate-500 hover:text-teal-600"
                             title="Edit"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1004,7 +1004,7 @@ export default function SettingsPage() {
                 <button
                   onClick={() => setEditingTemplate({ ...editingTemplate, isActive: !editingTemplate.isActive })}
                   className={`relative w-12 h-6 rounded-full transition-colors ${
-                    editingTemplate.isActive ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                    editingTemplate.isActive ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
@@ -1029,7 +1029,7 @@ export default function SettingsPage() {
               <button
                 onClick={saveTemplate}
                 disabled={saving || !editingTemplate.code || !editingTemplate.name || !editingTemplate.subject || !editingTemplate.bodyHtml}
-                className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                className="px-6 py-2 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
@@ -1057,7 +1057,7 @@ export default function SettingsPage() {
                     name="support_type"
                     checked={settings.support_type === "24/7"}
                     onChange={() => updateSetting("support_type", "24/7")}
-                    className="w-4 h-4 text-indigo-600"
+                    className="w-4 h-4 text-teal-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">24/7 Support</span>
                 </label>
@@ -1067,7 +1067,7 @@ export default function SettingsPage() {
                     name="support_type"
                     checked={settings.support_type === "working_hours"}
                     onChange={() => updateSetting("support_type", "working_hours")}
-                    className="w-4 h-4 text-indigo-600"
+                    className="w-4 h-4 text-teal-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">Working Hours</span>
                 </label>
@@ -1156,7 +1156,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => updateSetting("support_enabled", settings.support_enabled === "true" ? "false" : "true")}
                 className={`relative w-12 h-6 rounded-full transition-colors ${
-                  settings.support_enabled === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                  settings.support_enabled === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                 }`}
               >
                 <span
@@ -1172,7 +1172,7 @@ export default function SettingsPage() {
             <button
               onClick={saveSettings}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Support Settings"}
             </button>
@@ -1206,7 +1206,7 @@ export default function SettingsPage() {
           {settings.payment_gateway !== "none" && (
             <>
               {/* Stripe Configuration */}
-              <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
+              <div className="p-4 bg-gradient-to-r from-teal-50 to-purple-50 dark:from-teal-900/20 dark:to-purple-900/20 rounded-xl border border-teal-200 dark:border-teal-800">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-lg bg-[#635bff] flex items-center justify-center">
                     <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
@@ -1231,7 +1231,7 @@ export default function SettingsPage() {
                           name="stripe_mode"
                           checked={settings.stripe_mode !== "live"}
                           onChange={() => updateSetting("stripe_mode", "test")}
-                          className="w-4 h-4 text-indigo-600"
+                          className="w-4 h-4 text-teal-600"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">Test Mode</span>
                       </label>
@@ -1241,7 +1241,7 @@ export default function SettingsPage() {
                           name="stripe_mode"
                           checked={settings.stripe_mode === "live"}
                           onChange={() => updateSetting("stripe_mode", "live")}
-                          className="w-4 h-4 text-indigo-600"
+                          className="w-4 h-4 text-teal-600"
                         />
                         <span className="text-sm text-slate-700 dark:text-slate-300">Live Mode</span>
                       </label>
@@ -1344,7 +1344,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => updateSetting("payment_required", settings.payment_required === "true" ? "false" : "true")}
                     className={`relative w-12 h-6 rounded-full transition-colors ${
-                      settings.payment_required === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                      settings.payment_required === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                     }`}
                   >
                     <span
@@ -1363,7 +1363,7 @@ export default function SettingsPage() {
                   <button
                     onClick={() => updateSetting("payment_tax_inclusive", settings.payment_tax_inclusive === "true" ? "false" : "true")}
                     className={`relative w-12 h-6 rounded-full transition-colors ${
-                      settings.payment_tax_inclusive === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                      settings.payment_tax_inclusive === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
                     }`}
                   >
                     <span
@@ -1385,7 +1385,7 @@ export default function SettingsPage() {
                 "payment_required", "payment_tax_inclusive"
               ])}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Payment Settings"}
             </button>
@@ -1414,7 +1414,7 @@ export default function SettingsPage() {
             <button
               onClick={() => updateSetting("abn_lookup_enabled", settings.abn_lookup_enabled === "true" ? "false" : "true")}
               className={`relative w-12 h-6 rounded-full transition-colors ${
-                settings.abn_lookup_enabled === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-600"
+                settings.abn_lookup_enabled === "true" ? "bg-teal-600" : "bg-slate-300 dark:bg-slate-600"
               }`}
             >
               <span
@@ -1440,7 +1440,7 @@ export default function SettingsPage() {
               />
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Get your free API key from{" "}
-                <a href="https://abr.business.gov.au/Tools/WebServices" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                <a href="https://abr.business.gov.au/Tools/WebServices" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline">
                   ABR Web Services
                 </a>
               </p>
@@ -1488,7 +1488,7 @@ export default function SettingsPage() {
                 "abn_lookup_enabled", "abn_lookup_api_key", "abn_lookup_api_url"
               ])}
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save ABN Settings"}
             </button>

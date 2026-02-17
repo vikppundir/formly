@@ -234,7 +234,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -248,7 +248,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
             <div>
@@ -270,7 +270,7 @@ export default function RegisterPage() {
                   }}
                   placeholder="4XX XXX XXX"
                   maxLength={11}
-                  className="flex-1 rounded-r-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="flex-1 rounded-r-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
               </div>
               
@@ -287,7 +287,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
               <p className="text-xs text-slate-500 mt-1">
                 Min 8 chars, uppercase, lowercase, number, special char
@@ -304,33 +304,33 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
             {/* Legal Agreements */}
             <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Legal Agreements</p>
               <label className="flex items-start gap-3 cursor-pointer group">
-                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500" />
+                <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                 <span className="text-sm text-slate-600 dark:text-slate-300">
                   I agree to the{" "}
-                  <Link href="/p/terms-of-service" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Terms of Service</Link>
+                  <Link href="/p/terms-of-service" target="_blank" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">Terms of Service</Link>
                   <span className="text-red-500 ml-0.5">*</span>
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer group">
-                <input type="checkbox" checked={acceptPrivacy} onChange={(e) => setAcceptPrivacy(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500" />
+                <input type="checkbox" checked={acceptPrivacy} onChange={(e) => setAcceptPrivacy(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                 <span className="text-sm text-slate-600 dark:text-slate-300">
                   I have read and accept the{" "}
-                  <Link href="/p/privacy-policy" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Privacy Policy</Link>
+                  <Link href="/p/privacy-policy" target="_blank" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">Privacy Policy</Link>
                   <span className="text-red-500 ml-0.5">*</span>
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer group">
-                <input type="checkbox" checked={acceptDpa} onChange={(e) => setAcceptDpa(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500" />
+                <input type="checkbox" checked={acceptDpa} onChange={(e) => setAcceptDpa(e.target.checked)} className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500" />
                 <span className="text-sm text-slate-600 dark:text-slate-300">
                   I consent to the{" "}
-                  <Link href="/p/data-processing-agreement" target="_blank" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Data Processing Agreement</Link>
+                  <Link href="/p/data-processing-agreement" target="_blank" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">Data Processing Agreement</Link>
                   <span className="text-red-500 ml-0.5">*</span>
                 </span>
               </label>
@@ -341,14 +341,14 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={submitting || !acceptTerms || !acceptPrivacy || !acceptDpa}
-              className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
+              className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
             >
               {submitting ? "Creating account..." : "Create Account"}
             </button>
           </form>
           <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
             Already have an account?{" "}
-            <Link href="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+            <Link href="/login" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">
               Sign in
             </Link>
           </p>
@@ -387,7 +387,7 @@ export default function RegisterPage() {
                 required
                 maxLength={6}
                 placeholder="000000"
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-xl tracking-[0.5em] text-center font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-xl tracking-[0.5em] text-center font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               />
             </div>
             {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -395,7 +395,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={submitting || otp.length < 4}
-              className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
+              className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
             >
               {submitting ? "Verifying..." : "Verify"}
             </button>
@@ -405,7 +405,7 @@ export default function RegisterPage() {
               type="button"
               onClick={handleResendOtp}
               disabled={resendCooldown > 0 || submitting}
-              className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 disabled:no-underline"
+              className="text-sm text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50 disabled:no-underline"
             >
               {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Resend code"}
             </button>
@@ -432,7 +432,7 @@ export default function RegisterPage() {
         </p>
         <Link
           href="/login"
-          className="inline-block w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-[0.99] transition-transform"
+          className="inline-block w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:scale-[0.99] transition-transform"
         >
           Sign in
         </Link>

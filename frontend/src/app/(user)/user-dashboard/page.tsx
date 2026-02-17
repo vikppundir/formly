@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * User Dashboard - Beautiful modern design with Formly branding.
- * Colors: Pink #E91E8C, Navy #2E2A5E
+ * User Dashboard - Beautiful modern design with Onboard branding.
+ * Colors: Pink #0891b2, Navy #0f172a
  * Shows profile completion banner, account status, and pending partner requests.
  */
 
@@ -116,7 +116,7 @@ export default function UserDashboardPage() {
   const { user } = useAuth();
   const { currentAccount, accounts, loading: accountLoading, refresh } = useAccount();
   const [settings, setSettings] = useState<WebsiteSettings>({
-    app_name: "Formly",
+    app_name: "Onboard",
     website_tagline: "Protect. Optimise. Grow.",
     contact_email: "",
     contact_phone: "",
@@ -327,8 +327,8 @@ export default function UserDashboardPage() {
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white dark:bg-white/5 rounded-xl border border-purple-100 dark:border-purple-800"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-800 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <div className="w-10 h-10 rounded-lg bg-teal-100 dark:bg-teal-800 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                       </div>
@@ -434,17 +434,17 @@ export default function UserDashboardPage() {
       )}
 
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#2E2A5E] via-[#3d3778] to-[#2E2A5E] p-8 sm:p-10">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0f172a] via-[#3d3778] to-[#0f172a] p-8 sm:p-10">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#E91E8C] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#E91E8C] rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-[#0891b2] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#0891b2] rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
         </div>
         
         <div className="relative">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-[#E91E8C] text-sm font-medium mb-1">{greeting}</p>
+              <p className="text-[#0891b2] text-sm font-medium mb-1">{greeting}</p>
               <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
                 {user?.name}
               </h1>
@@ -453,7 +453,7 @@ export default function UserDashboardPage() {
               </p>
             </div>
             <div className="flex-shrink-0">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-2xl shadow-[#E91E8C]/40">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-2xl shadow-[#0891b2]/40">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -467,11 +467,11 @@ export default function UserDashboardPage() {
           { label: "Account Status", value: "Active", icon: "✓", color: "from-emerald-500 to-emerald-600" },
           { label: "Member Since", value: new Date().toLocaleDateString("en-US", { month: "short", year: "numeric" }), icon: "📅", color: "from-blue-500 to-blue-600" },
           { label: "Email Verified", value: "Yes", icon: "✉️", color: "from-violet-500 to-violet-600" },
-          { label: "Support", value: "24/7", icon: "💬", color: "from-[#E91E8C] to-[#c4177a]" },
+          { label: "Support", value: "24/7", icon: "💬", color: "from-[#0891b2] to-[#0e7490]" },
         ].map((stat, i) => (
           <div
             key={i}
-            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-[#E91E8C]/10 transition-all duration-300"
+            className="group relative overflow-hidden rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-[#0891b2]/10 transition-all duration-300"
           >
             <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${stat.color} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity`} />
             <div className="relative">
@@ -492,7 +492,7 @@ export default function UserDashboardPage() {
           </div>
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-semibold">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-semibold">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -520,7 +520,7 @@ export default function UserDashboardPage() {
           </div>
           <div className="p-4 space-y-2">
             <Link href="/user-dashboard/profile" className="w-full flex items-center gap-3 p-4 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#E91E8C]/20 to-[#E91E8C]/10 flex items-center justify-center text-[#E91E8C] group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0891b2]/20 to-[#0891b2]/10 flex items-center justify-center text-[#0891b2] group-hover:scale-110 transition-transform">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
@@ -531,7 +531,7 @@ export default function UserDashboardPage() {
               </div>
             </Link>
             <Link href="/user-dashboard/change-password" className="w-full flex items-center gap-3 p-4 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#2E2A5E]/20 to-[#2E2A5E]/10 flex items-center justify-center text-[#2E2A5E] dark:text-white/80 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0f172a]/20 to-[#0f172a]/10 flex items-center justify-center text-[#0f172a] dark:text-white/80 group-hover:scale-110 transition-transform">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -558,11 +558,11 @@ export default function UserDashboardPage() {
 
       {/* Contact Info */}
       {(settings.contact_email || settings.contact_phone) && (
-        <div className="rounded-2xl bg-gradient-to-r from-[#2E2A5E] to-[#3d3778] p-6 sm:p-8">
+        <div className="rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#3d3778] p-6 sm:p-8">
           <h3 className="text-white font-semibold mb-4">Need Assistance?</h3>
           <div className="flex flex-wrap gap-6">
             {settings.contact_email && (
-              <a href={`mailto:${settings.contact_email}`} className="flex items-center gap-2 text-white/80 hover:text-[#E91E8C] transition-colors">
+              <a href={`mailto:${settings.contact_email}`} className="flex items-center gap-2 text-white/80 hover:text-[#0891b2] transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
@@ -570,7 +570,7 @@ export default function UserDashboardPage() {
               </a>
             )}
             {settings.contact_phone && (
-              <a href={`tel:${settings.contact_phone}`} className="flex items-center gap-2 text-white/80 hover:text-[#E91E8C] transition-colors">
+              <a href={`tel:${settings.contact_phone}`} className="flex items-center gap-2 text-white/80 hover:text-[#0891b2] transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>

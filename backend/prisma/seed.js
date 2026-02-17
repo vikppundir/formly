@@ -214,10 +214,10 @@ const DEFAULT_SETTINGS = [
     { key: "smtp_user", value: "", category: "email" },
     { key: "smtp_pass", value: "", category: "email" },
     { key: "smtp_from_email", value: "", category: "email" },
-    { key: "smtp_from_name", value: "Formly", category: "email" },
+    { key: "smtp_from_name", value: "Onboard", category: "email" },
     { key: "sendgrid_api_key", value: "", category: "email" },
     { key: "sendgrid_from_email", value: "", category: "email" },
-    { key: "sendgrid_from_name", value: "Formly", category: "email" },
+    { key: "sendgrid_from_name", value: "Onboard", category: "email" },
     // SMS provider config (Twilio)
     { key: "sms_provider", value: "twilio", category: "sms" },
     { key: "twilio_account_sid", value: "", category: "sms" },
@@ -229,7 +229,7 @@ const DEFAULT_SETTINGS = [
     { key: "otp_expiry_minutes", value: "10", category: "verification" },
     { key: "otp_length", value: "6", category: "verification" },
     // App settings
-    { key: "app_name", value: "Formly", category: "app" },
+    { key: "app_name", value: "Onboard", category: "app" },
     // Website settings
     { key: "website_logo", value: "", category: "website" },
     { key: "website_tagline", value: "Protect. Optimise. Grow.", category: "website" },

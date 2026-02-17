@@ -64,7 +64,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
           <div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
           <div className="flex items-center justify-between">
@@ -87,7 +87,7 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500 focus:ring-offset-0 cursor-pointer"
               />
               <span className="text-sm text-slate-600 dark:text-slate-400">
                 Remember me for 30 days
@@ -95,7 +95,7 @@ export default function LoginPage() {
             </label>
             <Link
               href="/forgot-password"
-              className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+              className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium"
             >
               Forgot password?
             </Link>
@@ -106,14 +106,14 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
+            className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.99] transition-transform"
           >
             {submitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+          <Link href="/register" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">
             Create account
           </Link>
         </p>

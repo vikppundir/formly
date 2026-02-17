@@ -162,7 +162,7 @@ export default function ForgotPasswordPage() {
             </p>
             <button
               onClick={() => router.push("/login")}
-              className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+              className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors"
             >
               Go to Login
             </button>
@@ -219,7 +219,7 @@ export default function ForgotPasswordPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   />
                 </div>
               ) : (
@@ -238,7 +238,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, "").substring(0, 9))}
                       placeholder="4XX XXX XXX"
                       maxLength={9}
-                      className="flex-1 rounded-r-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="flex-1 rounded-r-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     />
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -253,7 +253,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
               >
                 {loading ? "Sending..." : "Send Reset Code"}
               </button>
@@ -261,7 +261,7 @@ export default function ForgotPasswordPage() {
 
             <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
               Remember your password?{" "}
-              <Link href="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+              <Link href="/login" className="text-teal-600 dark:text-teal-400 hover:underline font-medium">
                 Sign in
               </Link>
             </p>
@@ -305,14 +305,14 @@ export default function ForgotPasswordPage() {
                   placeholder="Enter OTP"
                   maxLength={6}
                   autoFocus
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base text-center tracking-[0.5em] font-mono focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
                 <div className="flex justify-end mt-1">
                   <button
                     type="button"
                     onClick={handleResend}
                     disabled={loading}
-                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50"
+                    className="text-xs text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
                   >
                     Resend code
                   </button>
@@ -329,7 +329,7 @@ export default function ForgotPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Min 8 chars, uppercase, lowercase, number"
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function ForgotPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter password"
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 min-h-[48px] text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                 />
               </div>
 
@@ -353,7 +353,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading || !otp || !newPassword || !confirmPassword}
-                className="w-full rounded-xl bg-indigo-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+                className="w-full rounded-xl bg-teal-600 text-white py-3 min-h-[48px] text-base font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
               >
                 {loading ? "Resetting..." : "Reset Password"}
               </button>

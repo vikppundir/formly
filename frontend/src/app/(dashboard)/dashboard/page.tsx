@@ -120,9 +120,9 @@ export default function DashboardPage() {
       sub: "Active accounts",
       href: "/dashboard/users",
       icon: UsersStatIcon,
-      gradient: "from-indigo-500/20 to-indigo-600/5",
-      border: "border-indigo-500/20",
-      iconColor: "text-indigo-600 dark:text-indigo-400",
+      gradient: "from-teal-500/20 to-teal-600/5",
+      border: "border-teal-500/20",
+      iconColor: "text-teal-600 dark:text-teal-400",
     },
     {
       label: "Active Roles",
@@ -181,7 +181,7 @@ export default function DashboardPage() {
                   <Icon className={`w-6 h-6 ${stat.iconColor}`} />
                 </div>
               </div>
-              <span className="relative mt-4 inline-flex items-center text-sm font-medium text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="relative mt-4 inline-flex items-center text-sm font-medium text-teal-600 dark:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity">
                 View
                 <svg className="ml-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -199,7 +199,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-1 rounded-2xl border border-slate-200 dark:border-slate-800/50 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Support Overview</h2>
-              <Link href="/dashboard/support" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href="/dashboard/support" className="text-sm text-teal-600 dark:text-teal-400 hover:underline">
                 View all
               </Link>
             </div>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-800/50 bg-white dark:bg-slate-900/50 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Tickets</h2>
-              <Link href="/dashboard/support" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+              <Link href="/dashboard/support" className="text-sm text-teal-600 dark:text-teal-400 hover:underline">
                 Manage
               </Link>
             </div>
@@ -276,9 +276,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Link
             href="/dashboard/users"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors text-center group"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors text-center group"
           >
-            <UsersStatIcon className="w-6 h-6 text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+            <UsersStatIcon className="w-6 h-6 text-slate-500 group-hover:text-teal-600 dark:group-hover:text-teal-400" />
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Manage Users</span>
           </Link>
           <Link

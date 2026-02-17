@@ -32,7 +32,7 @@ interface ConsentCheck {
 const CONSENT_INFO: Record<ConsentType, { title: string; description: string }> = {
   TAX_AGENT_AUTHORITY: {
     title: "Tax Agent Authority",
-    description: "I authorise Formly to act as my registered tax agent and to communicate with the Australian Taxation Office (ATO) on my behalf.",
+    description: "I authorise Onboard to act as my registered tax agent and to communicate with the Australian Taxation Office (ATO) on my behalf.",
   },
   ENGAGEMENT_LETTER: {
     title: "Engagement Letter",
@@ -135,7 +135,7 @@ export default function ConsentsPage() {
   if (accountLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -161,7 +161,7 @@ export default function ConsentsPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Digital Contracts & Consents</h1>
         <p className="text-slate-500 dark:text-white/60 mt-1">
           Sign required consents to activate services for{" "}
-          <span className="font-medium text-[#E91E8C]">{currentAccount.name}</span>
+          <span className="font-medium text-[#0891b2]">{currentAccount.name}</span>
         </p>
       </div>
 
@@ -216,7 +216,7 @@ export default function ConsentsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <>
@@ -288,7 +288,7 @@ export default function ConsentsPage() {
                   onClick={() => setSignatureMode("draw")}
                   className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${
                     signatureMode === "draw"
-                      ? "bg-[#E91E8C] text-white"
+                      ? "bg-[#0891b2] text-white"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
@@ -304,7 +304,7 @@ export default function ConsentsPage() {
                   onClick={() => setSignatureMode("type")}
                   className={`flex-1 py-2 px-4 rounded-xl text-sm font-medium transition-all ${
                     signatureMode === "type"
-                      ? "bg-[#E91E8C] text-white"
+                      ? "bg-[#0891b2] text-white"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
@@ -379,7 +379,7 @@ export default function ConsentsPage() {
                   type="button"
                   onClick={() => handleSign(signatureModal)}
                   disabled={signing === signatureModal || (signatureMode === "type" ? !signature.trim() : !signatureData)}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 disabled:opacity-50"
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 disabled:opacity-50"
                 >
                   {signing === signatureModal ? "Signing..." : "Sign & Accept"}
                 </button>
@@ -447,7 +447,7 @@ function ConsentCard({
             <button
               type="button"
               onClick={onSign}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white text-sm font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all"
             >
               Sign Now
             </button>
@@ -599,7 +599,7 @@ function SignatureCanvas({
         <button
           type="button"
           onClick={clearSignature}
-          className="text-sm text-[#E91E8C] hover:underline flex items-center gap-1"
+          className="text-sm text-[#0891b2] hover:underline flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

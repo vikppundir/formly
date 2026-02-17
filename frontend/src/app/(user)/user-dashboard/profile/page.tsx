@@ -265,12 +265,12 @@ export default function UserProfilePage() {
       )}
 
       {/* Profile Header */}
-      <div className="relative rounded-2xl bg-gradient-to-r from-[#2E2A5E] to-[#3d3778] p-8 overflow-hidden">
+      <div className="relative rounded-2xl bg-gradient-to-r from-[#0f172a] to-[#3d3778] p-8 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#E91E8C] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#0891b2] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         </div>
         <div className="relative flex flex-col sm:flex-row items-center gap-6">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white text-4xl font-bold shadow-2xl shadow-[#E91E8C]/40">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white text-4xl font-bold shadow-2xl shadow-[#0891b2]/40">
             {user?.name.charAt(0).toUpperCase()}
           </div>
           <div className="text-center sm:text-left">
@@ -310,7 +310,7 @@ export default function UserProfilePage() {
               setEditing(!editing);
               setError("");
             }}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white hover:opacity-90 transition-opacity"
+            className="px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white hover:opacity-90 transition-opacity"
           >
             {editing ? "Cancel" : "Edit Profile"}
           </button>
@@ -325,7 +325,7 @@ export default function UserProfilePage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                 />
               ) : (
                 <p className="text-slate-900 dark:text-white font-medium">{user?.name}</p>
@@ -361,7 +361,7 @@ export default function UserProfilePage() {
                       }}
                       placeholder="4XX XXX XXX"
                       maxLength={11}
-                      className="flex-1 px-4 py-3 rounded-r-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                      className="flex-1 px-4 py-3 rounded-r-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                     />
                   </div>
                 </div>
@@ -395,12 +395,12 @@ export default function UserProfilePage() {
                               placeholder="4XX XXX XXX"
                               maxLength={9}
                               autoFocus
-                              className="flex-1 px-3 py-2.5 rounded-r-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                              className="flex-1 px-3 py-2.5 rounded-r-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                             />
                             <button
                               onClick={handleSaveNewNumber}
                               disabled={saving || newPhone.length !== 9}
-                              className="px-3 py-2.5 rounded-lg text-xs font-medium bg-[#E91E8C] text-white hover:bg-[#c4177a] disabled:opacity-50 transition-colors"
+                              className="px-3 py-2.5 rounded-lg text-xs font-medium bg-[#0891b2] text-white hover:bg-[#0e7490] disabled:opacity-50 transition-colors"
                             >
                               {saving ? "..." : "Save"}
                             </button>
@@ -472,12 +472,12 @@ export default function UserProfilePage() {
                               placeholder="4XX XXX XXX"
                               maxLength={9}
                               autoFocus
-                              className="flex-1 px-3 py-2.5 rounded-r-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                              className="flex-1 px-3 py-2.5 rounded-r-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                             />
                             <button
                               onClick={handleSaveNewNumber}
                               disabled={saving || newPhone.length !== 9}
-                              className="px-3 py-2.5 rounded-lg text-xs font-medium bg-[#E91E8C] text-white hover:bg-[#c4177a] disabled:opacity-50 transition-colors"
+                              className="px-3 py-2.5 rounded-lg text-xs font-medium bg-[#0891b2] text-white hover:bg-[#0e7490] disabled:opacity-50 transition-colors"
                             >
                               {saving ? "..." : "Save"}
                             </button>
@@ -509,7 +509,7 @@ export default function UserProfilePage() {
                             <button
                               onClick={handleSendPhoneOtp}
                               disabled={sendingOtp}
-                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#E91E8C] text-white hover:bg-[#c4177a] transition-colors disabled:opacity-50"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-[#0891b2] text-white hover:bg-[#0e7490] transition-colors disabled:opacity-50"
                             >
                               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -530,12 +530,12 @@ export default function UserProfilePage() {
                                   placeholder="Enter OTP"
                                   maxLength={6}
                                   autoFocus
-                                  className="flex-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm tracking-widest text-center font-mono focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                                  className="flex-1 px-3 py-2.5 rounded-lg border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm tracking-widest text-center font-mono focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                                 />
                                 <button
                                   onClick={handleVerifyPhoneOtp}
                                   disabled={verifyingPhone || phoneOtp.length < 4}
-                                  className="px-4 py-2.5 rounded-lg text-xs font-medium bg-[#E91E8C] text-white hover:bg-[#c4177a] disabled:opacity-50 transition-colors"
+                                  className="px-4 py-2.5 rounded-lg text-xs font-medium bg-[#0891b2] text-white hover:bg-[#0e7490] disabled:opacity-50 transition-colors"
                                 >
                                   {verifyingPhone ? "..." : "Verify"}
                                 </button>
@@ -544,7 +544,7 @@ export default function UserProfilePage() {
                                 <button
                                   onClick={handleSendPhoneOtp}
                                   disabled={sendingOtp}
-                                  className="text-xs text-[#E91E8C] hover:underline disabled:opacity-50"
+                                  className="text-xs text-[#0891b2] hover:underline disabled:opacity-50"
                                 >
                                   Resend OTP
                                 </button>
@@ -591,7 +591,7 @@ export default function UserProfilePage() {
               <button
                 onClick={handleSaveProfile}
                 disabled={saving || !name.trim()}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
@@ -608,7 +608,7 @@ export default function UserProfilePage() {
         <div className="p-6">
           <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-white/5">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#2E2A5E]/20 to-[#2E2A5E]/10 flex items-center justify-center text-[#2E2A5E] dark:text-white/80">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0f172a]/20 to-[#0f172a]/10 flex items-center justify-center text-[#0f172a] dark:text-white/80">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -637,7 +637,7 @@ export default function UserProfilePage() {
       {/* Password Change Modal */}
       {passwordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-[#1a1840] rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md bg-white dark:bg-[#020617] rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-200 dark:border-white/10">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Change Password</h3>
             </div>
@@ -649,21 +649,21 @@ export default function UserProfilePage() {
               )}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Current Password</label>
-                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]" />
+                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">New Password</label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]" />
+                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]" />
                 <p className="text-xs text-slate-500 dark:text-white/40 mt-1">Min 8 characters, uppercase, lowercase, number</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-1">Confirm New Password</label>
-                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]" />
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]" />
               </div>
             </div>
             <div className="p-6 border-t border-slate-200 dark:border-white/10 flex justify-end gap-3">
               <button onClick={() => { setPasswordModal(false); setError(""); }} className="px-4 py-2.5 rounded-xl text-sm font-medium border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white hover:bg-slate-100 dark:hover:bg-white/10">Cancel</button>
-              <button onClick={handleChangePassword} disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword} className="px-6 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white hover:opacity-90 disabled:opacity-50">
+              <button onClick={handleChangePassword} disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword} className="px-6 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white hover:opacity-90 disabled:opacity-50">
                 {changingPassword ? "Changing..." : "Change Password"}
               </button>
             </div>

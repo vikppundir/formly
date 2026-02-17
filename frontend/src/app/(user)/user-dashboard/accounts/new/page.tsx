@@ -100,8 +100,8 @@ export default function NewAccountPage() {
 
       {/* Progress */}
       <div className="flex items-center gap-2 mb-8">
-        <div className={`flex-1 h-1 rounded-full ${step === "type" || step === "name" ? "bg-[#E91E8C]" : "bg-slate-200 dark:bg-white/10"}`} />
-        <div className={`flex-1 h-1 rounded-full ${step === "name" ? "bg-[#E91E8C]" : "bg-slate-200 dark:bg-white/10"}`} />
+        <div className={`flex-1 h-1 rounded-full ${step === "type" || step === "name" ? "bg-[#0891b2]" : "bg-slate-200 dark:bg-white/10"}`} />
+        <div className={`flex-1 h-1 rounded-full ${step === "name" ? "bg-[#0891b2]" : "bg-slate-200 dark:bg-white/10"}`} />
       </div>
 
       {step === "type" && (
@@ -111,18 +111,18 @@ export default function NewAccountPage() {
               key={item.type}
               type="button"
               onClick={() => handleTypeSelect(item.type)}
-              className="w-full p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[#E91E8C]/50 hover:shadow-lg hover:shadow-[#E91E8C]/10 transition-all text-left group"
+              className="w-full p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[#0891b2]/50 hover:shadow-lg hover:shadow-[#0891b2]/10 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="text-4xl">{item.icon}</div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-[#E91E8C]">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-[#0891b2]">
                     {item.label}
                   </h3>
                   <p className="text-slate-500 dark:text-white/60 mt-1">{item.description}</p>
                 </div>
                 <svg
-                  className="w-6 h-6 text-slate-300 dark:text-white/30 group-hover:text-[#E91E8C] group-hover:translate-x-1 transition-all"
+                  className="w-6 h-6 text-slate-300 dark:text-white/30 group-hover:text-[#0891b2] group-hover:translate-x-1 transition-all"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -155,7 +155,7 @@ export default function NewAccountPage() {
                 setStep("type");
                 setSelectedType(null);
               }}
-              className="ml-auto text-sm text-[#E91E8C] hover:underline"
+              className="ml-auto text-sm text-[#0891b2] hover:underline"
             >
               Change
             </button>
@@ -171,7 +171,7 @@ export default function NewAccountPage() {
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="Enter a name for this account"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/50 focus:border-[#E91E8C]"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]/50 focus:border-[#0891b2]"
               />
               <p className="text-sm text-slate-500 dark:text-white/60 mt-2">
                 Choose a name that helps you identify this account, e.g., "John&apos;s Tax", "ABC Pty Ltd", etc.
@@ -199,7 +199,7 @@ export default function NewAccountPage() {
                 type="button"
                 onClick={handleCreate}
                 disabled={loading || !accountName.trim()}
-                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

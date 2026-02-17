@@ -101,7 +101,7 @@ export default function ChangePasswordPage() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                 placeholder="Enter your current password"
               />
             </div>
@@ -116,7 +116,7 @@ export default function ChangePasswordPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2]"
                 placeholder="Enter new password"
               />
               {newPassword && (
@@ -147,7 +147,7 @@ export default function ChangePasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C] ${
+                className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0891b2] ${
                   confirmPassword && confirmPassword !== newPassword
                     ? "border-red-300 dark:border-red-500"
                     : "border-slate-300 dark:border-white/20"
@@ -163,7 +163,7 @@ export default function ChangePasswordPage() {
               <button
                 type="submit"
                 disabled={loading || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
-                className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">

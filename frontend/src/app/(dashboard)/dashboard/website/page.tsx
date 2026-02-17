@@ -279,7 +279,7 @@ export default function WebsiteManagementPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -321,7 +321,7 @@ export default function WebsiteManagementPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? "bg-indigo-500 text-white"
+                ? "bg-teal-500 text-white"
                 : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
             }`}
           >
@@ -339,7 +339,7 @@ export default function WebsiteManagementPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Homepage Sections</h2>
               <button
                 onClick={() => setShowCreateSection(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600"
               >
                 Add Section
               </button>
@@ -371,7 +371,7 @@ export default function WebsiteManagementPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditingSection(section)}
-                      className="px-3 py-1 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
+                      className="px-3 py-1 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
                     >
                       Edit
                     </button>
@@ -398,7 +398,7 @@ export default function WebsiteManagementPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Testimonials</h2>
               <button
                 onClick={() => setShowCreateTestimonial(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600"
               >
                 Add Testimonial
               </button>
@@ -428,7 +428,7 @@ export default function WebsiteManagementPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingTestimonial(t)}
-                        className="px-3 py-1 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
+                        className="px-3 py-1 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
                       >
                         Edit
                       </button>
@@ -456,7 +456,7 @@ export default function WebsiteManagementPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Service Cards</h2>
               <button
                 onClick={() => setShowCreateServiceCard(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600"
               >
                 Add Service Card
               </button>
@@ -482,7 +482,7 @@ export default function WebsiteManagementPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingServiceCard(card)}
-                        className="px-3 py-1 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
+                        className="px-3 py-1 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
                       >
                         Edit
                       </button>
@@ -510,7 +510,7 @@ export default function WebsiteManagementPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Pages</h2>
               <button
                 onClick={() => setShowCreatePage(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600"
               >
                 Create Page
               </button>
@@ -552,7 +552,7 @@ export default function WebsiteManagementPage() {
                       <td className="py-3 text-right">
                         <button
                           onClick={() => setEditingPage(page)}
-                          className="px-3 py-1 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg mr-2"
+                          className="px-3 py-1 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg mr-2"
                         >
                           Edit
                         </button>
@@ -639,7 +639,7 @@ export default function WebsiteManagementPage() {
                         {page ? (
                           <button
                             onClick={() => setEditingPage(page)}
-                            className="px-3 py-1.5 text-sm text-white bg-indigo-500 rounded-lg hover:bg-indigo-600"
+                            className="px-3 py-1.5 text-sm text-white bg-teal-500 rounded-lg hover:bg-teal-600"
                           >
                             Edit Content
                           </button>
@@ -649,7 +649,7 @@ export default function WebsiteManagementPage() {
                               setShowCreatePage(true);
                               // Will need to manually set slug after creation
                             }}
-                            className="px-3 py-1.5 text-sm text-white bg-indigo-500 rounded-lg hover:bg-indigo-600"
+                            className="px-3 py-1.5 text-sm text-white bg-teal-500 rounded-lg hover:bg-teal-600"
                           >
                             Create Page
                           </button>
@@ -670,7 +670,7 @@ export default function WebsiteManagementPage() {
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Navigation Menu</h2>
               <button
                 onClick={() => setShowCreateNavItem(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600"
+                className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600"
               >
                 Add Menu Item
               </button>
@@ -700,7 +700,7 @@ export default function WebsiteManagementPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditingNavItem(item)}
-                      className="px-3 py-1 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg"
+                      className="px-3 py-1 text-sm text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-lg"
                     >
                       Edit
                     </button>
@@ -855,7 +855,7 @@ function SectionModal({
               id="isActive"
               checked={form.isActive}
               onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+              className="w-4 h-4 rounded border-slate-300 text-teal-500"
             />
             <label htmlFor="isActive" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
@@ -864,7 +864,7 @@ function SectionModal({
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             Cancel
           </button>
-          <button onClick={() => onSave(form)} className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600">
+          <button onClick={() => onSave(form)} className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600">
             Save
           </button>
         </div>
@@ -964,7 +964,7 @@ function TestimonialModal({
               id="isActive"
               checked={form.isActive}
               onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+              className="w-4 h-4 rounded border-slate-300 text-teal-500"
             />
             <label htmlFor="isActive" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
@@ -973,7 +973,7 @@ function TestimonialModal({
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             Cancel
           </button>
-          <button onClick={() => onSave(form)} className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600">
+          <button onClick={() => onSave(form)} className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600">
             Save
           </button>
         </div>
@@ -1062,7 +1062,7 @@ function ServiceCardModal({
               id="isActive"
               checked={form.isActive}
               onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+              className="w-4 h-4 rounded border-slate-300 text-teal-500"
             />
             <label htmlFor="isActive" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
@@ -1071,7 +1071,7 @@ function ServiceCardModal({
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             Cancel
           </button>
-          <button onClick={() => onSave(form)} className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600">
+          <button onClick={() => onSave(form)} className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600">
             Save
           </button>
         </div>
@@ -1155,7 +1155,7 @@ function PageModal({
                 id="isPublished"
                 checked={form.isPublished}
                 onChange={(e) => setForm({ ...form, isPublished: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+                className="w-4 h-4 rounded border-slate-300 text-teal-500"
               />
               <label htmlFor="isPublished" className="text-sm text-slate-700 dark:text-slate-300">Published</label>
             </div>
@@ -1165,7 +1165,7 @@ function PageModal({
                 id="showInNav"
                 checked={form.showInNav}
                 onChange={(e) => setForm({ ...form, showInNav: e.target.checked })}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+                className="w-4 h-4 rounded border-slate-300 text-teal-500"
               />
               <label htmlFor="showInNav" className="text-sm text-slate-700 dark:text-slate-300">Show in Navigation</label>
             </div>
@@ -1184,7 +1184,7 @@ function PageModal({
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             Cancel
           </button>
-          <button onClick={() => onSave(form)} className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600">
+          <button onClick={() => onSave(form)} className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600">
             Save
           </button>
         </div>
@@ -1265,7 +1265,7 @@ function NavItemModal({
               id="isActive"
               checked={form.isActive}
               onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-              className="w-4 h-4 rounded border-slate-300 text-indigo-500"
+              className="w-4 h-4 rounded border-slate-300 text-teal-500"
             />
             <label htmlFor="isActive" className="text-sm text-slate-700 dark:text-slate-300">Active</label>
           </div>
@@ -1274,7 +1274,7 @@ function NavItemModal({
           <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
             Cancel
           </button>
-          <button onClick={() => onSave(form)} className="px-4 py-2 bg-indigo-500 text-white rounded-lg text-sm font-medium hover:bg-indigo-600">
+          <button onClick={() => onSave(form)} className="px-4 py-2 bg-teal-500 text-white rounded-lg text-sm font-medium hover:bg-teal-600">
             Save
           </button>
         </div>

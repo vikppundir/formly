@@ -136,7 +136,7 @@ export async function registerSettingsRoutes(
       // Then send test email
       const sendResult = await emailService.sendRaw({
         to: parsed.data.to,
-        subject: "Test Email from Formly",
+        subject: "Test Email from Onboard",
         html: `<h2>Test Email</h2><p>If you received this, your email configuration is working correctly.</p><p>Sent at: ${new Date().toISOString()}</p>`,
       });
 
@@ -167,7 +167,7 @@ export async function registerSettingsRoutes(
       // Then send test SMS
       const sendResult = await smsService.send({
         to: parsed.data.to,
-        message: `Formly: Test SMS. If you received this, your SMS configuration is working. Sent at ${new Date().toISOString()}`,
+        message: `Onboard: Test SMS. If you received this, your SMS configuration is working. Sent at ${new Date().toISOString()}`,
       });
 
       if (!sendResult.success) {
@@ -300,7 +300,7 @@ export async function registerSettingsRoutes(
       }
 
       // Get app name
-      const appName = await settingsRepo.getValue("app_name", "Formly");
+      const appName = await settingsRepo.getValue("app_name", "Onboard");
       const vars = { ...variables, appName };
 
       // Replace variables

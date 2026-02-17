@@ -47,7 +47,7 @@ export async function registerContactRoutes(
     const htmlBody = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
         <h2 style="color:#10172a;border-bottom:2px solid #4ec9fa;padding-bottom:10px;">
-          New Demo Request — Formly
+          New Demo Request — Onboard
         </h2>
         <table style="width:100%;border-collapse:collapse;margin:20px 0;">
           <tr><td style="padding:8px 12px;font-weight:bold;color:#555;width:140px;">Name</td><td style="padding:8px 12px;">${firstName} ${lastName}</td></tr>
@@ -57,11 +57,11 @@ export async function registerContactRoutes(
           <tr><td style="padding:8px 12px;font-weight:bold;color:#555;">Message</td><td style="padding:8px 12px;">${message || "—"}</td></tr>
           <tr style="background:#f8fcff;"><td style="padding:8px 12px;font-weight:bold;color:#555;">Submitted</td><td style="padding:8px 12px;">${now} (AEST)</td></tr>
         </table>
-        <p style="color:#888;font-size:12px;">This is an automated notification from the Formly website.</p>
+        <p style="color:#888;font-size:12px;">This is an automated notification from the Onboard website.</p>
       </div>
     `;
 
-    const textBody = `New Demo Request — Formly\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone || "—"}\nPractice Size: ${practiceSize || "—"}\nMessage: ${message || "—"}\nSubmitted: ${now} (AEST)`;
+    const textBody = `New Demo Request — Onboard\n\nName: ${firstName} ${lastName}\nEmail: ${email}\nPhone: ${phone || "—"}\nPractice Size: ${practiceSize || "—"}\nMessage: ${message || "—"}\nSubmitted: ${now} (AEST)`;
 
     // Log every request regardless of email outcome
     logger.info(
@@ -74,7 +74,7 @@ export async function registerContactRoutes(
       DEMO_RECIPIENTS.map((to) =>
         emailService.sendRaw({
           to,
-          subject: `[Formly Demo] New request from ${firstName} ${lastName}`,
+          subject: `[Onboard Demo] New request from ${firstName} ${lastName}`,
           html: htmlBody,
           text: textBody,
         })

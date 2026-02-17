@@ -118,7 +118,7 @@ async function build() {
   await registerContactRoutes(app, prisma);
 
   app.get("/", (_req, reply) =>
-    reply.send({ name: "Formly API", version: "1.0.0", health: "/health", docs: "API base" })
+    reply.send({ name: "Onboard API", version: "1.0.0", health: "/health", docs: "API base" })
   );
   app.get("/health", (_req, reply) => reply.send({ ok: true }));
 

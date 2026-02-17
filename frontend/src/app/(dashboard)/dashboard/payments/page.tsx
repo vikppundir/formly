@@ -252,7 +252,7 @@ export default function PaymentsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filteredPayments.length === 0 ? (
         <div className="text-center py-12 px-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -337,7 +337,7 @@ export default function PaymentsPage() {
                         <button
                           type="button"
                           onClick={() => openDetail(payment)}
-                          className="text-indigo-600 dark:text-indigo-400 text-sm hover:underline"
+                          className="text-teal-600 dark:text-teal-400 text-sm hover:underline"
                         >
                           View
                         </button>
@@ -485,7 +485,7 @@ export default function PaymentsPage() {
                   href={selectedPayment.paymentReceipt}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

@@ -282,7 +282,7 @@ export default function ServicesPage() {
   if (accountLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -290,8 +290,8 @@ export default function ServicesPage() {
   if (!currentAccount) {
     return (
       <div className="text-center py-16 px-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#E91E8C]/20 to-[#c4177a]/20 flex items-center justify-center">
-          <svg className="w-10 h-10 text-[#E91E8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#0891b2]/20 to-[#0e7490]/20 flex items-center justify-center">
+          <svg className="w-10 h-10 text-[#0891b2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
@@ -309,7 +309,7 @@ export default function ServicesPage() {
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Services</h1>
         <p className="text-slate-500 dark:text-white/60 mt-1">
           Browse and purchase accounting services for{" "}
-          <span className="font-medium text-[#E91E8C]">{currentAccount.name}</span>
+          <span className="font-medium text-[#0891b2]">{currentAccount.name}</span>
         </p>
       </div>
 
@@ -398,7 +398,7 @@ export default function ServicesPage() {
           onClick={() => setTab("browse")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === "browse"
-              ? "bg-[#E91E8C] text-white"
+              ? "bg-[#0891b2] text-white"
               : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/20"
           }`}
         >
@@ -409,7 +409,7 @@ export default function ServicesPage() {
           onClick={() => setTab("purchased")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             tab === "purchased"
-              ? "bg-[#E91E8C] text-white"
+              ? "bg-[#0891b2] text-white"
               : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-200 dark:hover:bg-white/20"
           }`}
         >
@@ -419,7 +419,7 @@ export default function ServicesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : tab === "browse" ? (
         <>
@@ -471,7 +471,7 @@ export default function ServicesPage() {
               <button
                 type="button"
                 onClick={() => setTab("browse")}
-                className="mt-4 text-[#E91E8C] hover:underline"
+                className="mt-4 text-[#0891b2] hover:underline"
               >
                 Browse available services
               </button>
@@ -513,7 +513,7 @@ function ServiceCard({
   const price = service.pricing[accountType] ?? 0;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 hover:border-[#E91E8C]/30 transition-colors">
+    <div className="rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 hover:border-[#0891b2]/30 transition-colors">
       <div className="flex justify-between items-start mb-3">
         <div>
           <h3 className="font-semibold text-slate-900 dark:text-white">{service.name}</h3>
@@ -524,7 +524,7 @@ function ServiceCard({
           )}
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-[#E91E8C]">${price.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-[#0891b2]">${price.toFixed(2)}</p>
           {service.requiresConsent && (
             <p className="text-xs text-slate-500 dark:text-white/50">Requires consent</p>
           )}
@@ -537,7 +537,7 @@ function ServiceCard({
         type="button"
         onClick={onPurchase}
         disabled={isPurchasing || !canPurchase}
-        className="w-full py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isPurchasing ? (
           <>
@@ -597,7 +597,7 @@ function PurchasedServiceCard({
               </span>
             )}
             {purchase.financialYear && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400">
                 FY {purchase.financialYear}
               </span>
             )}
@@ -666,7 +666,7 @@ function PurchasedServiceCard({
             href={purchase.paymentReceipt}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-2 text-sm text-[#E91E8C] hover:underline"
+            className="inline-flex items-center gap-1 mt-2 text-sm text-[#0891b2] hover:underline"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -700,7 +700,7 @@ function PurchasedServiceCard({
               type="button"
               onClick={() => onRetryPayment(purchase)}
               disabled={isPurchasing}
-              className="flex-1 py-2 px-4 rounded-lg bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white text-sm font-medium hover:shadow-lg transition-all disabled:opacity-50"
+              className="flex-1 py-2 px-4 rounded-lg bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white text-sm font-medium hover:shadow-lg transition-all disabled:opacity-50"
             >
               {isPurchasing ? "Processing..." : purchase.paymentStatus === "FAILED" ? "Retry Payment" : "Complete Payment"}
             </button>

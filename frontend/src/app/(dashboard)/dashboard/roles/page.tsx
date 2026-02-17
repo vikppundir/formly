@@ -255,7 +255,7 @@ export default function RolesPage() {
           onClick={() => setTab("roles")}
           className={`px-3 sm:px-4 py-2.5 sm:py-2 text-sm font-medium border-b-2 -mb-px min-h-[44px] flex-shrink-0 ${
             tab === "roles"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              ? "border-teal-600 text-teal-600 dark:text-teal-400"
               : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
           }`}
         >
@@ -266,7 +266,7 @@ export default function RolesPage() {
           onClick={() => setTab("permissions")}
           className={`px-3 sm:px-4 py-2.5 sm:py-2 text-sm font-medium border-b-2 -mb-px min-h-[44px] flex-shrink-0 ${
             tab === "permissions"
-              ? "border-indigo-600 text-indigo-600 dark:text-indigo-400"
+              ? "border-teal-600 text-teal-600 dark:text-teal-400"
               : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
           }`}
         >
@@ -292,7 +292,7 @@ export default function RolesPage() {
             <button
               type="button"
               onClick={openCreateRole}
-              className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 w-full sm:w-auto"
+              className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 w-full sm:w-auto"
             >
               Create Role
             </button>
@@ -321,7 +321,7 @@ export default function RolesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => openEditRole(r)} className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline">
+                          <button type="button" onClick={() => openEditRole(r)} className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline">
                             Edit
                           </button>
                           <button type="button" onClick={() => deleteRole(r)} className="text-red-600 dark:text-red-400 text-sm min-h-[36px] px-2 hover:underline">
@@ -379,7 +379,7 @@ export default function RolesPage() {
             <button
               type="button"
               onClick={openCreatePerm}
-              className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 w-full sm:w-auto"
+              className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 w-full sm:w-auto"
             >
               Create Permission
             </button>
@@ -406,7 +406,7 @@ export default function RolesPage() {
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.description ?? "—"}</td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
-                          <button type="button" onClick={() => openEditPerm(p)} className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline">
+                          <button type="button" onClick={() => openEditPerm(p)} className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline">
                             Edit
                           </button>
                           <button type="button" onClick={() => deletePerm(p)} className="text-red-600 dark:text-red-400 text-sm min-h-[36px] px-2 hover:underline">
@@ -506,7 +506,7 @@ export default function RolesPage() {
                       type="button"
                       onClick={() => loadPermOptions(permOptionsPage + 1, true)}
                       disabled={permOptionsLoading}
-                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50 mt-2 min-h-[44px] px-2"
+                      className="text-sm text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50 mt-2 min-h-[44px] px-2"
                     >
                       {permOptionsLoading ? "Loading..." : "Load more"}
                     </button>
@@ -524,7 +524,7 @@ export default function RolesPage() {
                 <button
                   type="submit"
                   disabled={roleSubmitting}
-                  className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
                 >
                   {roleSubmitting ? "Saving..." : roleModal === "create" ? "Create" : "Save"}
                 </button>
@@ -583,7 +583,7 @@ export default function RolesPage() {
                 <button
                   type="submit"
                   disabled={permSubmitting}
-                  className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
                 >
                   {permSubmitting ? "Saving..." : permModal === "create" ? "Create" : "Save"}
                 </button>

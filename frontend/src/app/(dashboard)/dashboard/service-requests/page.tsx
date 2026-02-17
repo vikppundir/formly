@@ -244,7 +244,7 @@ export default function ServiceRequestsPage() {
         </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:col-span-2 lg:col-span-1">
           <p className="text-sm text-slate-500 dark:text-slate-400">Total Revenue</p>
-          <p className="text-2xl font-semibold text-[#E91E8C]">{formatCurrency(stats.totalRevenue, "AUD")}</p>
+          <p className="text-2xl font-semibold text-[#0891b2]">{formatCurrency(stats.totalRevenue, "AUD")}</p>
         </div>
       </div>
 
@@ -370,7 +370,7 @@ export default function ServiceRequestsPage() {
                           <button
                             type="button"
                             onClick={() => openDetail(p)}
-                            className="text-indigo-600 dark:text-indigo-400 text-sm hover:underline"
+                            className="text-teal-600 dark:text-teal-400 text-sm hover:underline"
                           >
                             View
                           </button>
@@ -437,7 +437,7 @@ export default function ServiceRequestsPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Price:</span>
-                    <span className="font-bold text-[#E91E8C]">{formatCurrency(Number(selectedPurchase.price), selectedPurchase.currency)}</span>
+                    <span className="font-bold text-[#0891b2]">{formatCurrency(Number(selectedPurchase.price), selectedPurchase.currency)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Status:</span>
@@ -505,7 +505,7 @@ export default function ServiceRequestsPage() {
                         href={selectedPurchase.paymentReceipt}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 text-sm hover:underline flex items-center gap-1"
+                        className="text-teal-600 dark:text-teal-400 text-sm hover:underline flex items-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -664,7 +664,7 @@ export default function ServiceRequestsPage() {
                   setDetailModal(false);
                   openStatusUpdate(selectedPurchase);
                 }}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                className="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700"
               >
                 Update Status
               </button>
@@ -718,7 +718,7 @@ export default function ServiceRequestsPage() {
                 type="button"
                 onClick={handleStatusUpdate}
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
               >
                 {submitting ? "Updating..." : "Update"}
               </button>

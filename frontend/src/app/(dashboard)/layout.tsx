@@ -133,10 +133,10 @@ function SidebarContent({
     <>
       <div className="flex items-center justify-between gap-3 p-4 sm:p-6 border-b border-slate-800/50">
         <Link href="/dashboard" className="flex items-center gap-3 min-w-0" onClick={onNavClick}>
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#312966] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            F
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+            O
           </div>
-          <span className="font-semibold text-white text-lg tracking-tight truncate">Formly Admin</span>
+          <span className="font-semibold text-white text-lg tracking-tight truncate">Onboard Admin</span>
         </Link>
         {onClose && (
           <button
@@ -172,7 +172,7 @@ function SidebarContent({
               onClick={onNavClick}
               className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 min-h-[44px] ${
                 active
-                  ? "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                  ? "bg-teal-500/20 text-teal-300 border border-teal-500/30"
                   : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"
               }`}
             >
@@ -231,7 +231,7 @@ export default function DashboardLayout({
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-500 text-sm">Loading...</p>
         </div>
       </div>
@@ -307,7 +307,7 @@ export default function DashboardLayout({
               </span>
             </div>
             <div
-              className="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-semibold border border-indigo-500/30 flex-shrink-0"
+              className="w-9 h-9 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm font-semibold border border-teal-500/30 flex-shrink-0"
               title={user.email}
             >
               {user.name.charAt(0).toUpperCase()}

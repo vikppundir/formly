@@ -354,7 +354,7 @@ export default function AccountsPage() {
           <div class="section-title">Tax Agent Details</div>
           <div class="field-row">
             <span class="field-label">Tax Agent Name:</span>
-            <span class="field-value">Formly Pty Ltd</span>
+            <span class="field-value">Onboard Pty Ltd</span>
           </div>
           <div class="field-row">
             <span class="field-label">Tax Agent Number:</span>
@@ -368,7 +368,7 @@ export default function AccountsPage() {
 
         <div class="authority-text">
           <p><strong>AUTHORITY:</strong></p>
-          <p>I, <strong>${clientName}</strong>, hereby authorise Formly Pty Ltd to:</p>
+          <p>I, <strong>${clientName}</strong>, hereby authorise Onboard Pty Ltd to:</p>
           <ul>
             <li>Act as my registered tax agent with the Australian Taxation Office (ATO)</li>
             <li>Lodge tax returns and other documents on my behalf</li>
@@ -388,7 +388,7 @@ export default function AccountsPage() {
         <div class="signature-section">
           <div class="section-title">Client Signature & Declaration</div>
           <div class="signature-box">
-            <p>I declare that the information provided is true and correct, and I authorise Formly to act as my tax agent.</p>
+            <p>I declare that the information provided is true and correct, and I authorise Onboard to act as my tax agent.</p>
             
             ${consent.signatureType === "draw" && consent.signatureData 
               ? `<img src="${consent.signatureData}" alt="Signature" class="signature-image" />`
@@ -495,7 +495,7 @@ export default function AccountsPage() {
               if (e.key === "Enter") setSearchQuery(searchInput.trim());
             }}
             placeholder="Search by TFN, mobile, account name, owner, ABN..."
-            className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
           />
           <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
             {searchQuery && (
@@ -513,7 +513,7 @@ export default function AccountsPage() {
             <button
               type="button"
               onClick={() => setSearchQuery(searchInput.trim())}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-medium hover:bg-indigo-700 transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-medium hover:bg-teal-700 transition-colors"
             >
               Search
             </button>
@@ -552,12 +552,12 @@ export default function AccountsPage() {
       {searchQuery && (
         <div className="flex items-center gap-2 mb-4 text-sm text-slate-600 dark:text-slate-400">
           <span>Results for:</span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-medium">
             &ldquo;{searchQuery}&rdquo;
             <button
               type="button"
               onClick={() => { setSearchInput(""); setSearchQuery(""); }}
-              className="ml-1 hover:text-indigo-900 dark:hover:text-indigo-200"
+              className="ml-1 hover:text-teal-900 dark:hover:text-teal-200"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -615,7 +615,7 @@ export default function AccountsPage() {
                           <p className="font-medium text-slate-900 dark:text-slate-100">
                             {a.name}
                             {a.isDefault && (
-                              <span className="ml-2 text-xs text-indigo-600 dark:text-indigo-400">
+                              <span className="ml-2 text-xs text-teal-600 dark:text-teal-400">
                                 (default)
                               </span>
                             )}
@@ -679,7 +679,7 @@ export default function AccountsPage() {
                           <button
                             type="button"
                             onClick={() => openStatusModal(a)}
-                            className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline"
+                            className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline"
                           >
                             Status
                           </button>
@@ -760,7 +760,7 @@ export default function AccountsPage() {
                 type="button"
                 onClick={handleStatusUpdate}
                 disabled={submitting || newStatus === selectedAccount.status}
-                className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
               >
                 {submitting ? "Updating..." : "Update Status"}
               </button>
@@ -788,7 +788,7 @@ export default function AccountsPage() {
                       {selectedAccount.status}
                     </span>
                     {selectedAccount.isDefault && (
-                      <span className="text-xs text-indigo-600 dark:text-indigo-400">(Default)</span>
+                      <span className="text-xs text-teal-600 dark:text-teal-400">(Default)</span>
                     )}
                   </div>
                 </div>
@@ -813,7 +813,7 @@ export default function AccountsPage() {
                   onClick={() => setActiveTab("info")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === "info"
-                      ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                      ? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -824,7 +824,7 @@ export default function AccountsPage() {
                   onClick={() => setActiveTab("consents")}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                     activeTab === "consents"
-                      ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                      ? "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
                       : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 >
@@ -848,7 +848,7 @@ export default function AccountsPage() {
                   
                   {loadingConsents ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
                     </div>
                   ) : consents.length === 0 ? (
                     <div className="text-center py-12 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
@@ -892,7 +892,7 @@ export default function AccountsPage() {
                                 <button
                                   type="button"
                                   onClick={() => generateTaxAgentAuthorityPDF(consent, selectedAccount)}
-                                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+                                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors"
                                 >
                                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -1298,7 +1298,7 @@ export default function AccountsPage() {
                                 <span className="font-medium">{partner.name}</span>
                                 {partner.email && <span className="text-slate-500 ml-2">{partner.email}</span>}
                                 {partner.ownership !== undefined && (
-                                  <span className="text-indigo-600 dark:text-indigo-400 ml-2">({partner.ownership}%)</span>
+                                  <span className="text-teal-600 dark:text-teal-400 ml-2">({partner.ownership}%)</span>
                                 )}
                               </div>
                             );
@@ -1343,7 +1343,7 @@ export default function AccountsPage() {
                   setDetailModal(false);
                   openStatusModal(selectedAccount);
                 }}
-                className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700"
+                className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700"
               >
                 Update Status
               </button>

@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * User dashboard layout - Beautiful modern design with Formly branding colors.
- * Pink: #E91E8C, Navy: #2E2A5E
+ * User dashboard layout - Onboard by Bhalekar branding.
+ * Teal: #0891b2, Navy: #0f172a
  * Includes multi-account switcher and account-specific navigation.
  */
 
@@ -148,7 +148,7 @@ function AccountSwitcher() {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 mt-2 z-50 rounded-xl bg-[#2E2A5E] border border-white/10 shadow-xl overflow-hidden">
+          <div className="absolute left-0 right-0 mt-2 z-50 rounded-xl bg-[#0f172a] border border-white/10 shadow-xl overflow-hidden">
             {accounts.map((acc) => (
               <button
                 key={acc.id}
@@ -166,20 +166,20 @@ function AccountSwitcher() {
                   <p className="text-white text-sm font-medium truncate">{acc.name}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-white/50 text-xs">{acc.accountType}</span>
-                    {acc.isDefault && <span className="text-[#E91E8C] text-xs">(default)</span>}
+                    {acc.isDefault && <span className="text-[#0891b2] text-xs">(default)</span>}
                   </div>
                 </div>
                 {acc.id === currentAccount?.id && (
-                  <div className="w-2 h-2 rounded-full bg-[#E91E8C]" />
+                  <div className="w-2 h-2 rounded-full bg-[#0891b2]" />
                 )}
               </button>
             ))}
             <Link
               href="/user-dashboard/accounts/new"
               onClick={() => setIsOpen(false)}
-              className="w-full p-3 flex items-center gap-3 hover:bg-white/10 transition-colors border-t border-white/10 text-[#E91E8C]"
+              className="w-full p-3 flex items-center gap-3 hover:bg-white/10 transition-colors border-t border-white/10 text-[#0891b2]"
             >
-              <div className="w-8 h-8 rounded-lg border-2 border-dashed border-[#E91E8C]/50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg border-2 border-dashed border-[#0891b2]/50 flex items-center justify-center">
                 <span className="text-lg">+</span>
               </div>
               <span className="text-sm font-medium">Add New Account</span>
@@ -221,9 +221,9 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
   // Show loading while checking auth or redirecting admin
   if (loading || !user || isAdmin()) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#2E2A5E] to-[#1a1840]">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] to-[#020617]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
           <p className="text-white/70 text-sm">Loading...</p>
         </div>
       </div>
@@ -231,7 +231,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#1a1840] dark:to-[#0f0d24]">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#020617] dark:to-[#020617]">
       {/* Mobile overlay - only shows when sidebar is open on mobile */}
       {sidebarOpen && (
         <div
@@ -241,16 +241,16 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Desktop Sidebar - always visible on lg+ */}
-      <aside className="hidden lg:flex fixed top-0 left-0 z-30 h-full w-72 flex-col bg-gradient-to-b from-[#2E2A5E] via-[#352f6b] to-[#2E2A5E] shadow-2xl">
+      <aside className="hidden lg:flex fixed top-0 left-0 z-30 h-full w-72 flex-col bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-[#0f172a] shadow-2xl">
         {/* Logo */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#E91E8C]/30">
-              F
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-[#0891b2]/30">
+              O
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg tracking-tight">Formly</h1>
-              <p className="text-white/50 text-xs">Smart Accounting Platform</p>
+              <h1 className="text-white font-bold text-lg tracking-tight">Onboard</h1>
+              <p className="text-white/50 text-xs">by Bhalekar</p>
             </div>
           </div>
         </div>
@@ -258,7 +258,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
         {/* User Info */}
         <div className="p-4 mx-4 mt-4 rounded-2xl bg-white/5 border border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-semibold text-lg shadow-lg">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-semibold text-lg shadow-lg">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -287,12 +287,12 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
                   flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
                   transition-all duration-200 group
                   ${active
-                    ? "bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white shadow-lg shadow-[#E91E8C]/30"
+                    ? "bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white shadow-lg shadow-[#0891b2]/30"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
                   }
                 `}
               >
-                <Icon className={`w-5 h-5 ${active ? "text-white" : "text-[#E91E8C] group-hover:text-white"}`} />
+                <Icon className={`w-5 h-5 ${active ? "text-white" : "text-[#0891b2] group-hover:text-white"}`} />
                 {item.label}
               </Link>
             );
@@ -316,7 +316,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
       <aside
         className={`
           lg:hidden fixed top-0 left-0 z-50 h-full w-72 flex flex-col
-          bg-gradient-to-b from-[#2E2A5E] via-[#352f6b] to-[#2E2A5E]
+          bg-gradient-to-b from-[#0f172a] via-[#1e293b] to-[#0f172a]
           shadow-2xl transition-transform duration-300 ease-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
@@ -325,12 +325,12 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-bold text-lg">
-                F
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-bold text-lg">
+                O
               </div>
               <div>
-                <h1 className="text-white font-bold text-lg tracking-tight">Formly</h1>
-                <p className="text-white/50 text-xs">Smart Accounting Platform</p>
+                <h1 className="text-white font-bold text-lg tracking-tight">Onboard</h1>
+                <p className="text-white/50 text-xs">by Bhalekar</p>
               </div>
             </div>
             <button
@@ -346,7 +346,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
         {/* User Info */}
         <div className="p-4 mx-4 mt-4 rounded-2xl bg-white/5 border border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-semibold text-lg">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-semibold text-lg">
               {user.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
@@ -376,12 +376,12 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
                   flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
                   transition-all duration-200 group
                   ${active
-                    ? "bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white shadow-lg shadow-[#E91E8C]/30"
+                    ? "bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white shadow-lg shadow-[#0891b2]/30"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
                   }
                 `}
               >
-                <Icon className={`w-5 h-5 ${active ? "text-white" : "text-[#E91E8C] group-hover:text-white"}`} />
+                <Icon className={`w-5 h-5 ${active ? "text-white" : "text-[#0891b2] group-hover:text-white"}`} />
                 {item.label}
               </Link>
             );
@@ -404,7 +404,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="lg:ml-72 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-20 h-16 bg-white/90 dark:bg-[#1a1840]/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-20 h-16 bg-white/90 dark:bg-[#020617]/90 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 flex items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -419,7 +419,7 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E91E8C] to-[#c4177a] flex items-center justify-center text-white font-semibold shadow-lg shadow-[#E91E8C]/20">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-semibold shadow-lg shadow-[#0891b2]/20">
               {user.name.charAt(0).toUpperCase()}
             </div>
           </div>

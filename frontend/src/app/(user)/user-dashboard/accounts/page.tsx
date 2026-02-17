@@ -109,7 +109,7 @@ export default function AccountsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -125,7 +125,7 @@ export default function AccountsPage() {
         </div>
         <Link
           href="/user-dashboard/accounts/new"
-          className="rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white px-6 py-3 text-sm font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all text-center"
+          className="rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white px-6 py-3 text-sm font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all text-center"
         >
           Create New Account
         </Link>
@@ -149,7 +149,7 @@ export default function AccountsPage() {
         >
           Active Accounts
           {activeAccounts.length > 0 && (
-            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-[#E91E8C]/10 text-[#E91E8C]">{activeAccounts.length}</span>
+            <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-[#0891b2]/10 text-[#0891b2]">{activeAccounts.length}</span>
           )}
         </button>
         <button
@@ -172,8 +172,8 @@ export default function AccountsPage() {
         <>
           {activeAccounts.length === 0 ? (
             <div className="text-center py-16 px-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#E91E8C]/20 to-[#c4177a]/20 flex items-center justify-center">
-                <svg className="w-10 h-10 text-[#E91E8C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#0891b2]/20 to-[#0e7490]/20 flex items-center justify-center">
+                <svg className="w-10 h-10 text-[#0891b2]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
@@ -185,7 +185,7 @@ export default function AccountsPage() {
               </p>
               <Link
                 href="/user-dashboard/accounts/new"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white px-6 py-3 text-sm font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white px-6 py-3 text-sm font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -387,8 +387,8 @@ function AccountCard({
     <div
       className={`rounded-2xl p-6 transition-all ${
         isCurrent
-          ? "bg-gradient-to-r from-[#E91E8C]/10 to-[#c4177a]/10 border-2 border-[#E91E8C]/30 dark:border-[#E91E8C]/50"
-          : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[#E91E8C]/30"
+          ? "bg-gradient-to-r from-[#0891b2]/10 to-[#0e7490]/10 border-2 border-[#0891b2]/30 dark:border-[#0891b2]/50"
+          : "bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-[#0891b2]/30"
       }`}
     >
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -404,7 +404,7 @@ function AccountCard({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{account.name}</h3>
             {account.isDefault && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E91E8C]/20 text-[#E91E8C]">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#0891b2]/20 text-[#0891b2]">
                 Default
               </span>
             )}
@@ -431,7 +431,7 @@ function AccountCard({
             <button
               type="button"
               onClick={onSwitch}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-[#E91E8C] hover:bg-[#E91E8C]/10 transition-colors"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-[#0891b2] hover:bg-[#0891b2]/10 transition-colors"
             >
               Switch
             </button>
@@ -531,7 +531,7 @@ function ClosedAccountCard({
             type="button"
             onClick={onReopen}
             disabled={isActionLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-[#E91E8C] hover:bg-[#E91E8C]/10 border border-[#E91E8C]/30 transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[#0891b2] hover:bg-[#0891b2]/10 border border-[#0891b2]/30 transition-colors disabled:opacity-50"
           >
             {isActionLoading ? "..." : "Reopen"}
           </button>

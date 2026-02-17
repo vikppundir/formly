@@ -39,7 +39,7 @@ export function createSmsService(prisma: PrismaClient) {
     async send(params: SendSmsParams): Promise<{ success: boolean; error?: string; sid?: string }> {
       try {
         const [appName, fromNumber] = await Promise.all([
-          settingsRepo.getValue("app_name", "Formly"),
+          settingsRepo.getValue("app_name", "Onboard"),
           settingsRepo.getValue("twilio_phone_number"),
         ]);
 

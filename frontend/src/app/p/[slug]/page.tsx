@@ -61,7 +61,7 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#10172a] to-[#0b1120]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-3 border-[#4ec9fa] border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-3 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
           <p className="text-white/70">Loading...</p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
           <p className="text-slate-600 dark:text-slate-300 mb-8">Page not found</p>
           <Link
             href="/"
-            className="px-6 py-3 bg-[#4ec9fa] text-white rounded-lg font-semibold hover:bg-[#4ec9fa]/90 transition-colors"
+            className="px-6 py-3 bg-[#0891b2] text-white rounded-lg font-semibold hover:bg-[#0891b2]/90 transition-colors"
           >
             Go Home
           </Link>
@@ -91,22 +91,22 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
       <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "bg-[#10172a]/95 backdrop-blur-md py-3 shadow-xl" : "bg-white dark:bg-[#10172a] py-4 shadow-md"}`}>
         <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4ec9fa] to-[#3498db] flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
-              F
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+              O
             </div>
             <span className={`text-lg font-bold tracking-tight ${isScrolled ? "text-white" : "text-[#10172a] dark:text-white"}`}>
-              FORMLY
+              ONBOARD
             </span>
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link href="/" className={`hidden sm:block text-sm font-semibold hover:text-[#4ec9fa] transition-colors ${isScrolled ? "text-white" : "text-[#10172a] dark:text-white"}`}>
+            <Link href="/" className={`hidden sm:block text-sm font-semibold hover:text-[#0891b2] transition-colors ${isScrolled ? "text-white" : "text-[#10172a] dark:text-white"}`}>
               Home
             </Link>
-            <Link href="/login" className={`hidden sm:block text-sm font-semibold hover:text-[#4ec9fa] transition-colors ${isScrolled ? "text-white" : "text-[#10172a] dark:text-white"}`}>
+            <Link href="/login" className={`hidden sm:block text-sm font-semibold hover:text-[#0891b2] transition-colors ${isScrolled ? "text-white" : "text-[#10172a] dark:text-white"}`}>
               Login
             </Link>
-            <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-[#4ec9fa] hover:bg-[#4ec9fa]/90 text-white rounded-lg text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-[#4ec9fa]/30">
+            <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-[#0891b2] hover:bg-[#0891b2]/90 text-white rounded-lg text-sm font-bold transition-all transform hover:scale-105 shadow-lg shadow-[#0891b2]/30">
               Get Started
             </Link>
           </div>
@@ -131,22 +131,22 @@ export default function DynamicPage({ params }: { params: { slug: string } }) {
       <section className="py-16">
         <div className="container mx-auto px-6">
           <div
-            className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-[#10172a] dark:prose-headings:text-white prose-a:text-[#4ec9fa] prose-strong:text-[#10172a] dark:prose-strong:text-white"
+            className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-[#10172a] dark:prose-headings:text-white prose-a:text-[#0891b2] prose-strong:text-[#10172a] dark:prose-strong:text-white"
             dangerouslySetInnerHTML={{ __html: page.content }}
           />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-slate-200 dark:border-[#4ec9fa]/20 bg-[#10172a] dark:bg-[#0b1120]">
+      <footer className="py-12 border-t border-slate-200 dark:border-[#0891b2]/20 bg-[#10172a] dark:bg-[#0b1120]">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#4ec9fa] to-[#3498db] flex items-center justify-center text-white font-bold shadow-lg">F</div>
-              <span className="text-lg font-bold text-white">FORMLY</span>
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-bold shadow-lg">O</div>
+              <span className="text-lg font-bold text-white">ONBOARD</span>
             </div>
             <div className="text-xs text-slate-400 uppercase tracking-wider">
-              ©2026 Formly — All Rights Reserved
+              ©2026 Onboard — All Rights Reserved
             </div>
           </div>
         </div>

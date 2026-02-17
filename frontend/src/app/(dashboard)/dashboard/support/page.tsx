@@ -225,7 +225,7 @@ export default function AdminSupportPage() {
           placeholder="Search tickets..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
         <select
           value={statusFilter}
@@ -259,7 +259,7 @@ export default function AdminSupportPage() {
       {/* Tickets Table */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
@@ -285,12 +285,12 @@ export default function AdminSupportPage() {
                     <td className="px-4 py-4">
                       <button
                         onClick={() => loadTicketDetail(ticket.id)}
-                        className="text-left hover:text-indigo-600 dark:hover:text-indigo-400"
+                        className="text-left hover:text-teal-600 dark:hover:text-teal-400"
                       >
                         <p className="text-xs font-mono text-slate-500 dark:text-white/50">{ticket.ticketNo}</p>
                         <p className="font-medium text-slate-900 dark:text-white line-clamp-1">{ticket.subject}</p>
                         {ticket._count.replies > 0 && (
-                          <p className="text-xs text-indigo-500">{ticket._count.replies} replies</p>
+                          <p className="text-xs text-teal-500">{ticket._count.replies} replies</p>
                         )}
                       </button>
                     </td>
@@ -326,7 +326,7 @@ export default function AdminSupportPage() {
                     <td className="px-4 py-4">
                       <button
                         onClick={() => loadTicketDetail(ticket.id)}
-                        className="px-3 py-1.5 text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50"
+                        className="px-3 py-1.5 text-xs font-medium bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 rounded-lg hover:bg-teal-200 dark:hover:bg-teal-900/50"
                       >
                         View
                       </button>
@@ -407,7 +407,7 @@ export default function AdminSupportPage() {
               {/* Original message */}
               <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
                     {selectedTicket.user.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -426,15 +426,15 @@ export default function AdminSupportPage() {
                   key={reply.id}
                   className={`p-4 rounded-xl ${
                     reply.isAdmin
-                      ? "bg-indigo-50 dark:bg-indigo-900/20 ml-4"
+                      ? "bg-teal-50 dark:bg-teal-900/20 ml-4"
                       : "bg-slate-50 dark:bg-white/5 mr-4"
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
                       reply.isAdmin
-                        ? "bg-gradient-to-br from-indigo-600 to-indigo-800"
-                        : "bg-gradient-to-br from-indigo-500 to-purple-500"
+                        ? "bg-gradient-to-br from-teal-600 to-teal-800"
+                        : "bg-gradient-to-br from-teal-500 to-purple-500"
                     }`}>
                       {reply.user.name.charAt(0).toUpperCase()}
                     </div>
@@ -442,7 +442,7 @@ export default function AdminSupportPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-slate-900 dark:text-white text-sm">{reply.user.name}</p>
                         {reply.isAdmin && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-indigo-600 text-white">Support Team</span>
+                          <span className="px-2 py-0.5 rounded text-xs bg-teal-600 text-white">Support Team</span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500 dark:text-white/50">
@@ -469,7 +469,7 @@ export default function AdminSupportPage() {
                     onChange={(e) => setReplyMessage(e.target.value)}
                     placeholder="Type your response..."
                     rows={3}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
                   />
                   <div className="flex justify-end gap-3">
                     <button
@@ -482,7 +482,7 @@ export default function AdminSupportPage() {
                     <button
                       type="submit"
                       disabled={sendingReply || !replyMessage.trim()}
-                      className="px-6 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                      className="px-6 py-2 rounded-xl bg-teal-600 text-white font-medium hover:bg-teal-700 disabled:opacity-50"
                     >
                       {sendingReply ? "Sending..." : "Send Reply"}
                     </button>

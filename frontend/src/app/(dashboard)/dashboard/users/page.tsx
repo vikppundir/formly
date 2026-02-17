@@ -169,7 +169,7 @@ export default function UsersPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-indigo-700 w-full sm:w-auto"
+          className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-teal-700 w-full sm:w-auto"
         >
           Create user
         </button>
@@ -220,7 +220,7 @@ export default function UsersPage() {
                       <button
                         type="button"
                         onClick={() => openEdit(u)}
-                        className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline"
+                        className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline"
                       >
                         Edit
                       </button>
@@ -349,7 +349,7 @@ export default function UsersPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : modal === "create" ? "Create" : "Save"}
                 </button>
