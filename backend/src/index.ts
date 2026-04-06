@@ -40,6 +40,9 @@ import {
   registerForgotPasswordRoutes,
   // Contact / Demo request (public)
   registerContactRoutes,
+  registerLicenseRoutes,
+  registerMailRoutes,
+  registerCustomer360Routes,
 } from "./routes/index.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { logger } from "./utils/logger.js";
@@ -47,6 +50,29 @@ import { logger } from "./utils/logger.js";
 const env = getEnv();
 const prisma = new PrismaClient();
 const authService = createAuthService(prisma);
+
+const LICENSE_ENFORCEMENT_EXEMPT_PATHS = [
+  "/",
+  "/health",
+  "/me",
+  "/auth/",
+  "/register",
+  "/public/",
+  "/forgot-password",
+  "/contact/",
+  "/license/activate",
+  "/license/deactivate",
+  "/license/status",
+  "/license/validate",
+  "/api/license/validate",
+  "/license/portal/status",
+  "/license/renewal/",
+  "/license/cron/",
+  "/admin/licence/settings",
+  "/internal/license/hooks/",
+];
+
+let licenseGateCache: { at: number; unlocked: boolean } = { at: 0, unlocked: true };
 
 async function build() {
   const app = Fastify({ logger: false });
@@ -92,6 +118,33 @@ async function build() {
     timeWindow: "1 minute",
   });
 
+  app.addHook("preHandler", async (request, reply) => {
+    const path = request.url.split("?")[0] || "";
+    const exempt = LICENSE_ENFORCEMENT_EXEMPT_PATHS.some((prefix) => path === prefix || path.startsWith(prefix));
+    if (exempt) return;
+
+    const now = Date.now();
+    if (now - licenseGateCache.at > 5000) {
+      const current = new Date();
+      const active = await prisma.license.findFirst({
+        where: {
+          status: { in: ["ACTIVE", "GRACE"] },
+          boundDomain: { not: null },
+          OR: [{ expiresAt: { gt: current } }, { graceEndsAt: { gt: current } }],
+        },
+        select: { id: true },
+      });
+      licenseGateCache = { at: now, unlocked: Boolean(active) };
+    }
+
+    if (!licenseGateCache.unlocked) {
+      return reply.status(423).send({
+        error: "LICENSE_REQUIRED",
+        message: "Application is locked. Activate a valid licence key to continue.",
+      });
+    }
+  });
+
   app.setErrorHandler(errorHandler);
 
   await registerAuthRoutes(app, authService);
@@ -116,6 +169,10 @@ async function build() {
   await registerForgotPasswordRoutes(app, prisma);
   // Contact / Demo request (public)
   await registerContactRoutes(app, prisma);
+  // License management and enforcement
+  await registerLicenseRoutes(app, authService, prisma);
+  await registerMailRoutes(app, authService, prisma);
+  await registerCustomer360Routes(app, authService, prisma);
 
   app.get("/", (_req, reply) =>
     reply.send({ name: "Onboard API", version: "1.0.0", health: "/health", docs: "API base" })

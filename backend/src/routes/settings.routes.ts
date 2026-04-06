@@ -95,6 +95,53 @@ export async function registerSettingsRoutes(
     }
   );
 
+  // Mail Agent runtime config for admin-side users
+  app.get(
+    "/settings/mail-agent-config",
+    { preHandler: [authMiddleware] },
+    async (_request: FastifyRequest, reply: FastifyReply) => {
+      const [
+        enabled,
+        provider,
+        userScope,
+        smtpHost,
+        smtpPort,
+        imapHost,
+        imapPort,
+        fromEmail,
+        fromName,
+      ] = await Promise.all([
+        settingsRepo.getValue("mail_agent_enabled", "false"),
+        settingsRepo.getValue("mail_agent_provider", "gmail"),
+        settingsRepo.getValue("mail_agent_user_scope", "admin_only"),
+        settingsRepo.getValue("mail_agent_smtp_host", ""),
+        settingsRepo.getValue("mail_agent_smtp_port", "587"),
+        settingsRepo.getValue("mail_agent_imap_host", ""),
+        settingsRepo.getValue("mail_agent_imap_port", "993"),
+        settingsRepo.getValue("mail_agent_from_email", ""),
+        settingsRepo.getValue("mail_agent_from_name", ""),
+      ]);
+
+      return reply.send({
+        enabled: enabled === "true",
+        provider,
+        userScope,
+        smtp: {
+          host: smtpHost,
+          port: Number(smtpPort || "587"),
+        },
+        imap: {
+          host: imapHost,
+          port: Number(imapPort || "993"),
+        },
+        defaults: {
+          fromEmail,
+          fromName,
+        },
+      });
+    }
+  );
+
   // Update settings (bulk)
   app.put(
     "/settings",

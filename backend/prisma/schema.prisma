@@ -44,6 +44,7 @@ model User {
   partnershipPartners PartnershipPartner[] // Partner in other partnership accounts
   trustPartners       TrustPartner[]       // Trustee/Beneficiary in other trust accounts
   legalConsents       LegalConsent[]       // Consents given by user
+  licenseActivations  LicenseActivation[]
 
   @@index([email])
   @@index([phone])
@@ -307,6 +308,7 @@ model IndividualProfile {
   firstName       String
   middleName      String?   // Common in Australia
   lastName        String
+  gender          String?   // MALE | FEMALE | OTHER | PREFER_NOT_TO_SAY
   dateOfBirth     DateTime?
   tfn             String?   // Tax File Number - AES-256-GCM encrypted at application layer
   tfnHash         String?   @unique // HMAC-SHA256 of plaintext TFN for uniqueness checks
@@ -418,6 +420,7 @@ model CompanyProfile {
   selfIsDirector      Boolean   @default(true)
   selfIsShareholder   Boolean   @default(false)
   selfShareCount      Int?      // Number of shares held by owner
+  selfDirectorId      String?   // Owner DIN (optional)
 
   registrationDate    DateTime?
   financialYearEnd    String?   // e.g., "30 June"
@@ -913,4 +916,139 @@ model NavMenuItem {
   @@index([parentId])
   @@index([isActive])
   @@index([sortOrder])
+}
+
+// -----------------------------------------------------------------------------
+// License Management - Product activation and enforcement
+// -----------------------------------------------------------------------------
+model License {
+  id                      String        @id @default(cuid())
+  keyHash                 String        @unique
+  keyLast4                String
+  status                  LicenseStatus @default(ACTIVE)
+  expiresAt               DateTime
+  graceEndsAt             DateTime?
+  suspendedAt             DateTime?
+  revokedAt               DateTime?
+  revocationReason        String?
+  allowedDomains          String?       @db.Text // JSON: ["example.com"]
+  boundDomain             String?
+  metadata                String?       @db.Text // Optional metadata JSON
+  latestRenewalFailedAt   DateTime?
+  createdByUserId         String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  activations             LicenseActivation[]
+  renewals                LicenseRenewal[]
+  validations             LicenseValidationAudit[]
+
+  @@index([status])
+  @@index([expiresAt])
+  @@index([boundDomain])
+}
+
+model LicenseActivation {
+  id                      String                  @id @default(cuid())
+  licenseId               String
+  userId                  String?
+  instanceId              String
+  fingerprintHash         String
+  domain                  String
+  productVersion          String?
+  buildDigest             String?
+  lastValidationStatus    LicenseValidationResult @default(OK)
+  lastValidatedAt         DateTime?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  license                 License                 @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  user                    User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  validations             LicenseValidationAudit[]
+
+  @@unique([licenseId, instanceId])
+  @@index([instanceId])
+  @@index([userId])
+  @@index([domain])
+}
+
+model LicenseRenewal {
+  id                      String          @id @default(cuid())
+  licenseId               String
+  paymentStatus           RenewalPaymentStatus @default(PENDING)
+  stripeSessionId         String?         @unique
+  transactionId           String?
+  amount                  Decimal?        @db.Decimal(10, 2)
+  currency                String?         @default("AUD")
+  periodMonths            Int             @default(12)
+  startsAt                DateTime?
+  endsAt                  DateTime?
+  paidAt                  DateTime?
+  failedAt                DateTime?
+  failureReason           String?
+  metadata                String?         @db.Text
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  license                 License         @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+
+  @@index([licenseId])
+  @@index([paymentStatus])
+  @@index([paidAt])
+}
+
+model LicenseValidationAudit {
+  id                      String                @id @default(cuid())
+  licenseId               String?
+  activationId            String?
+  instanceId              String?
+  status                  LicenseValidationResult
+  enforcementMode         LicenseEnforcementMode
+  reasonCode              String?
+  domain                  String?
+  keyHash                 String?
+  fingerprintHash         String?
+  buildDigestHash         String?
+  requestIp               String?
+  userAgent               String?
+  createdAt               DateTime              @default(now())
+
+  license                 License?              @relation(fields: [licenseId], references: [id], onDelete: SetNull)
+  activation              LicenseActivation?    @relation(fields: [activationId], references: [id], onDelete: SetNull)
+
+  @@index([licenseId])
+  @@index([activationId])
+  @@index([instanceId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum LicenseStatus {
+  ACTIVE
+  GRACE
+  SUSPENDED
+  EXPIRED
+  REVOKED
+}
+
+enum LicenseValidationResult {
+  OK
+  WARN_GRACE
+  SUSPEND_ADMIN
+  READ_ONLY
+  LOCKOUT
+}
+
+enum LicenseEnforcementMode {
+  OK
+  WARN_GRACE
+  SUSPEND_ADMIN
+  READ_ONLY
+  LOCKOUT
+}
+
+enum RenewalPaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }

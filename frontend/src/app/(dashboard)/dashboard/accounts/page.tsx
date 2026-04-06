@@ -9,6 +9,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState, useRef } from "react";
 import { apiGet, apiPatch } from "@/lib/api";
+import Link from "next/link";
 
 type AccountType = "INDIVIDUAL" | "COMPANY" | "TRUST" | "PARTNERSHIP";
 type AccountStatus = "DRAFT" | "PENDING" | "ACTIVE" | "SUSPENDED" | "CLOSED";
@@ -621,7 +622,12 @@ export default function AccountsPage() {
                             )}
                           </p>
                           <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                            {a.id.slice(0, 8)}...
+                            <Link
+                              href={`/dashboard/accounts/${a.id}/360`}
+                              className="hover:underline text-violet-600 dark:text-violet-400"
+                            >
+                              {a.id.slice(0, 8)}...
+                            </Link>
                           </p>
                         </div>
                       </td>
@@ -683,6 +689,12 @@ export default function AccountsPage() {
                           >
                             Status
                           </button>
+                          <Link
+                            href={`/dashboard/accounts/${a.id}/360`}
+                            className="text-violet-600 dark:text-violet-400 text-sm min-h-[36px] px-2 hover:underline inline-flex items-center"
+                          >
+                            360 View
+                          </Link>
                         </div>
                       </td>
                     </tr>

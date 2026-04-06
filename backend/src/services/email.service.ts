@@ -15,6 +15,12 @@ export function createEmailService(prisma: PrismaClient) {
   const settingsRepo = createSettingsRepository(prisma);
   const templateRepo = createEmailTemplateRepository(prisma);
 
+  function defaultMailAgentSmtp(provider: string): { host: string; port: string } {
+    if (provider === "outlook") return { host: "smtp.office365.com", port: "587" };
+    if (provider === "yahoo") return { host: "smtp.mail.yahoo.com", port: "587" };
+    return { host: "smtp.gmail.com", port: "587" };
+  }
+
   // Replace template variables like {{name}} with actual values
   function replaceVariables(text: string, variables: Record<string, string>): string {
     return text.replace(/\{\{(\w+)\}\}/g, (_, key) => variables[key] ?? "");
@@ -31,6 +37,32 @@ export function createEmailService(prisma: PrismaClient) {
 
     if (!host || !user || !pass) {
       throw new Error("SMTP configuration incomplete");
+    }
+
+    return nodemailer.createTransport({
+      host,
+      port: parseInt(port, 10),
+      secure: parseInt(port, 10) === 465,
+      auth: { user, pass },
+    });
+  }
+
+  // Mail Agent SMTP (gmail/outlook/yahoo/custom)
+  async function getMailAgentTransporter() {
+    const [provider, hostFromSetting, portFromSetting, user, pass] = await Promise.all([
+      settingsRepo.getValue("mail_agent_provider", "gmail"),
+      settingsRepo.getValue("mail_agent_smtp_host"),
+      settingsRepo.getValue("mail_agent_smtp_port"),
+      settingsRepo.getValue("mail_agent_user"),
+      settingsRepo.getValue("mail_agent_pass"),
+    ]);
+
+    const defaults = defaultMailAgentSmtp(provider);
+    const host = hostFromSetting || defaults.host;
+    const port = portFromSetting || defaults.port;
+
+    if (!host || !user || !pass) {
+      throw new Error("Mail Agent configuration incomplete");
     }
 
     return nodemailer.createTransport({
@@ -59,6 +91,25 @@ export function createEmailService(prisma: PrismaClient) {
       text: params.text,
     });
     logger.info({ to: params.to, subject: params.subject }, "Email sent via SMTP");
+  }
+
+  async function sendMailAgent(params: {
+    to: string;
+    from: string;
+    fromName: string;
+    subject: string;
+    html: string;
+    text?: string;
+  }) {
+    const transporter = await getMailAgentTransporter();
+    await transporter.sendMail({
+      from: `"${params.fromName}" <${params.from}>`,
+      to: params.to,
+      subject: params.subject,
+      html: params.html,
+      text: params.text,
+    });
+    logger.info({ to: params.to, subject: params.subject }, "Email sent via Mail Agent");
   }
 
   // Send via SendGrid
@@ -109,8 +160,18 @@ export function createEmailService(prisma: PrismaClient) {
         const text = template.bodyText ? replaceVariables(template.bodyText, variables) : undefined;
 
         // Get from settings
-        const fromKey = provider === "sendgrid" ? "sendgrid_from_email" : "smtp_from_email";
-        const fromNameKey = provider === "sendgrid" ? "sendgrid_from_name" : "smtp_from_name";
+        const fromKey =
+          provider === "sendgrid"
+            ? "sendgrid_from_email"
+            : provider === "mail_agent"
+              ? "mail_agent_from_email"
+              : "smtp_from_email";
+        const fromNameKey =
+          provider === "sendgrid"
+            ? "sendgrid_from_name"
+            : provider === "mail_agent"
+              ? "mail_agent_from_name"
+              : "smtp_from_name";
         const [from, fromName] = await Promise.all([
           settingsRepo.getValue(fromKey),
           settingsRepo.getValue(fromNameKey, "Onboard"),
@@ -125,6 +186,8 @@ export function createEmailService(prisma: PrismaClient) {
         // Send based on provider
         if (provider === "sendgrid") {
           await sendSendGrid(emailParams);
+        } else if (provider === "mail_agent") {
+          await sendMailAgent(emailParams);
         } else {
           await sendSmtp(emailParams);
         }
@@ -145,19 +208,22 @@ export function createEmailService(prisma: PrismaClient) {
       text?: string;
     }): Promise<{ success: boolean; error?: string }> {
       try {
-        const [provider, from, fromName] = await Promise.all([
-          settingsRepo.getValue("email_provider", "smtp"),
-          settingsRepo.getValue(
-            await settingsRepo.getValue("email_provider") === "sendgrid"
-              ? "sendgrid_from_email"
-              : "smtp_from_email"
-          ),
-          settingsRepo.getValue(
-            await settingsRepo.getValue("email_provider") === "sendgrid"
-              ? "sendgrid_from_name"
-              : "smtp_from_name",
-            "Onboard"
-          ),
+        const provider = await settingsRepo.getValue("email_provider", "smtp");
+        const fromKey =
+          provider === "sendgrid"
+            ? "sendgrid_from_email"
+            : provider === "mail_agent"
+              ? "mail_agent_from_email"
+              : "smtp_from_email";
+        const fromNameKey =
+          provider === "sendgrid"
+            ? "sendgrid_from_name"
+            : provider === "mail_agent"
+              ? "mail_agent_from_name"
+              : "smtp_from_name";
+        const [from, fromName] = await Promise.all([
+          settingsRepo.getValue(fromKey),
+          settingsRepo.getValue(fromNameKey, "Onboard"),
         ]);
 
         if (!from) {
@@ -168,6 +234,8 @@ export function createEmailService(prisma: PrismaClient) {
 
         if (provider === "sendgrid") {
           await sendSendGrid(emailParams);
+        } else if (provider === "mail_agent") {
+          await sendMailAgent(emailParams);
         } else {
           await sendSmtp(emailParams);
         }
@@ -189,6 +257,12 @@ export function createEmailService(prisma: PrismaClient) {
           const apiKey = await settingsRepo.getValue("sendgrid_api_key");
           if (!apiKey) return { success: false, error: "SendGrid API key not configured" };
           // SendGrid doesn't have a direct test method; we just validate key exists
+          return { success: true };
+        } else if (provider === "mail_agent") {
+          const enabled = await settingsRepo.getValue("mail_agent_enabled", "false");
+          if (enabled !== "true") return { success: false, error: "Mail Agent is disabled" };
+          const transporter = await getMailAgentTransporter();
+          await transporter.verify();
           return { success: true };
         } else {
           const transporter = await getSmtpTransporter();

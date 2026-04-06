@@ -8,15 +8,19 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { useLicence } from "@/contexts/license-context";
+import { LicenceBlockScreen } from "@/components/licence-block-screen";
 import { useEffect, useState } from "react";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: DashboardIcon },
   { href: "/dashboard/users", label: "Users", icon: UsersIcon },
   { href: "/dashboard/accounts", label: "Accounts", icon: AccountsIcon },
+  { href: "/dashboard/mail", label: "Mail", icon: MailIcon },
   { href: "/dashboard/services", label: "Services", icon: ServicesIcon },
   { href: "/dashboard/service-requests", label: "Service Requests", icon: RequestsIcon },
   { href: "/dashboard/payments", label: "Payments", icon: PaymentsIcon },
+  { href: "/dashboard/licence", label: "Licence", icon: SettingsIcon },
   { href: "/dashboard/website", label: "Website", icon: WebsiteIcon },
   { href: "/dashboard/roles", label: "Roles & Permissions", icon: RolesIcon },
   { href: "/dashboard/support", label: "Support Tickets", icon: SupportIcon },
@@ -94,6 +98,13 @@ function WebsiteIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8m-18 8h18a2 2 0 002-2V8a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" />
+    </svg>
+  );
+}
 function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -155,9 +166,11 @@ function SidebarContent({
             item.href === "/dashboard" ||
             (item.href === "/dashboard/users" && hasPermission("manage_users")) ||
             (item.href === "/dashboard/accounts" && hasPermission("manage_users")) ||
+            (item.href === "/dashboard/mail" && hasPermission("manage_settings")) ||
             (item.href === "/dashboard/services" && hasPermission("manage_settings")) ||
             (item.href === "/dashboard/service-requests" && hasPermission("manage_settings")) ||
             (item.href === "/dashboard/payments" && hasPermission("manage_settings")) ||
+            (item.href === "/dashboard/licence" && hasPermission("manage_settings")) ||
             (item.href === "/dashboard/website" && hasPermission("manage_settings")) ||
             (item.href === "/dashboard/roles" && hasPermission("manage_roles")) ||
             (item.href === "/dashboard/support" && hasPermission("manage_users")) ||
@@ -203,6 +216,9 @@ export default function DashboardLayout({
   children,
 }: { children: React.ReactNode }) {
   const { user, loading, logout, hasPermission } = useAuth();
+  const licence = useLicence();
+  const licenceLoading = licence.loading;
+  const refreshLicence = licence.refresh;
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -222,12 +238,16 @@ export default function DashboardLayout({
     setSidebarOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    void refreshLicence(true);
+  }, [pathname, refreshLicence]);
+
   async function handleLogout() {
     await logout();
     router.replace("/login");
   }
 
-  if (loading || !user) {
+  if (loading || !user || licenceLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
@@ -238,8 +258,16 @@ export default function DashboardLayout({
     );
   }
 
+  const isLicencePage = pathname.startsWith("/dashboard/licence");
+  const shouldBlock =
+    !isLicencePage &&
+    (licence.status === "EXPIRED" ||
+      licence.status === "REVOKED" ||
+      licence.status === "SUSPENDED" ||
+      (licence.enforcementMode === "LOCKOUT" && licence.hasLicenceKey));
+
   return (
-    <div className="min-h-screen flex flex-col lg:grid lg:grid-cols-[16rem_1fr] bg-slate-50 dark:bg-slate-950">
+    <div className="h-screen overflow-hidden flex flex-col lg:grid lg:grid-cols-[16rem_1fr] bg-slate-50 dark:bg-slate-950">
       {/* Mobile overlay - fixed, so does not take grid cell */}
       {sidebarOpen && (
         <button
@@ -253,9 +281,9 @@ export default function DashboardLayout({
       {/* Sidebar: drawer on mobile; on desktop = first grid column (16rem) */}
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 flex flex-col bg-slate-900 dark:bg-slate-950 border-r border-slate-800/50 shadow-xl
+          fixed top-0 left-0 z-50 h-full w-64 flex flex-col overflow-hidden bg-slate-900 dark:bg-slate-950 border-r border-slate-800/50 shadow-xl
           transition-transform duration-300 ease-out
-          lg:relative lg:translate-x-0 lg:w-full lg:min-w-0
+          lg:sticky lg:top-0 lg:translate-x-0 lg:w-full lg:min-w-0 lg:h-screen
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
       >
@@ -269,7 +297,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 w-full lg:col-start-2 lg:min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 w-full lg:col-start-2 lg:min-w-0 lg:h-screen">
         <header className="sticky top-0 z-30 h-14 sm:h-16 border-b border-slate-200 dark:border-slate-800/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 min-w-0">
             <button
@@ -287,9 +315,11 @@ export default function DashboardLayout({
                 {pathname === "/dashboard" ? "Overview" : 
                  pathname.startsWith("/dashboard/users") ? "Users" :
                  pathname.startsWith("/dashboard/accounts") ? "Accounts" :
+                 pathname.startsWith("/dashboard/mail") ? "Mail" :
                  pathname.startsWith("/dashboard/service-requests") ? "Service Requests" :
                  pathname.startsWith("/dashboard/services") ? "Services" :
                  pathname.startsWith("/dashboard/payments") ? "Payments" :
+                 pathname.startsWith("/dashboard/licence") ? "Licence" :
                  pathname.startsWith("/dashboard/website") ? "Website" : 
                  pathname.startsWith("/dashboard/roles") ? "Roles & Permissions" : 
                  pathname.startsWith("/dashboard/support") ? "Support Tickets" : 
@@ -314,7 +344,21 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto min-h-0">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-0">
+          {shouldBlock ? (
+            <LicenceBlockScreen
+              status={licence.status}
+              enforcementMode={licence.enforcementMode}
+              message={licence.message}
+              expiresAt={licence.expiresAt}
+              ctaHref="/dashboard/licence"
+              ctaLabel="Add Your Licence Key"
+              purchaseHref="http://localhost:3001/portal/purchase"
+            />
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

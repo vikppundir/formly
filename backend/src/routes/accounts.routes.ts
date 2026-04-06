@@ -11,6 +11,7 @@ import { createAuthMiddleware } from "../middleware/auth.middleware.js";
 import { requirePermission } from "../middleware/permission.middleware.js";
 import { createAccountRepository, maskAccountTfns } from "../repositories/account.repository.js";
 import { createConsentRepository } from "../repositories/consent.repository.js";
+import { createSettingsRepository } from "../repositories/settings.repository.js";
 import { writeAuditLog } from "../utils/logger.js";
 import { safeHmacField } from "../utils/encryption.js";
 import { z } from "zod";
@@ -34,6 +35,10 @@ const individualProfileSchema = z.object({
   firstName: z.string().optional().nullable(),
   middleName: z.string().optional().nullable(),
   lastName: z.string().optional().nullable(),
+  gender: z
+    .enum(["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"])
+    .optional()
+    .nullable(),
   occupation: z.string().optional().nullable(),
   employerName: z.string().optional().nullable(),
   // ABN fields
@@ -81,12 +86,19 @@ const companyProfileSchema = z.object({
   industry: z.string().optional().nullable(),
   industrySector: z.string().optional().nullable(),
   businessDescription: z.string().optional().nullable(),
-  // Directors
-  directorCount: z.number().int().min(1).optional().nullable(),
+  // Directors (coerce string from JSON for robustness)
+  directorCount: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.coerce.number().int().min(1).optional().nullable()
+  ),
   // Self (account owner) director/shareholder flags
   selfIsDirector: z.boolean().optional().nullable(),
   selfIsShareholder: z.boolean().optional().nullable(),
-  selfShareCount: z.number().int().min(0).optional().nullable(),
+  selfShareCount: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.coerce.number().int().min(0).optional().nullable()
+  ),
+  selfDirectorId: z.string().optional().nullable(),
   // Other
   financialYearEnd: z.string().optional().nullable(),
   gstRegistered: z.boolean().optional().nullable(),
@@ -128,7 +140,10 @@ const partnershipProfileSchema = z.object({
   industry: z.string().optional().nullable(),
   // Self (account owner) partner details
   selfRole: z.string().optional().nullable(),
-  selfOwnershipPercent: z.number().min(0).max(100).optional().nullable(),
+  selfOwnershipPercent: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z.coerce.number().min(0).max(100).optional().nullable()
+  ),
   partners: z.union([
     z.array(z.object({ name: z.string(), email: z.string(), ownership: z.number() }).strip()),
     z.string(), // Also accept JSON string
@@ -142,6 +157,7 @@ export async function registerAccountsRoutes(
 ): Promise<void> {
   const accountRepo = createAccountRepository(prisma);
   const consentRepo = createConsentRepository(prisma);
+  const settingsRepo = createSettingsRepository(prisma);
   const authMiddleware = createAuthMiddleware(authService);
 
   // =========================================================================
@@ -383,7 +399,14 @@ export async function registerAccountsRoutes(
           accountId: id,
           accountType: account.accountType,
         });
-        return reply.status(500).send({ error: "Failed to update profile" });
+        const expose =
+          process.env.NODE_ENV !== "production" &&
+          err instanceof Error &&
+          err.message;
+        return reply.status(500).send({
+          error: "Failed to update profile",
+          ...(expose ? { message: err.message } : {}),
+        });
       }
     }
   );
@@ -706,6 +729,209 @@ export async function registerAccountsRoutes(
         return reply.status(404).send({ error: "Account not found" });
       }
       return reply.send({ account });
+    }
+  );
+
+  // Account 360 details (admin) - account-centric view with linked users/roles/docs
+  app.get(
+    "/admin/accounts/:id/360",
+    { preHandler: [authMiddleware, requirePermission("manage_users")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const account = await accountRepo.findById(id);
+      if (!account) {
+        return reply.status(404).send({ error: "Account not found" });
+      }
+
+      const [consents, services, companyPartners, partnershipPartners, trustPartners] = await Promise.all([
+        prisma.legalConsent.findMany({
+          where: { accountId: id },
+          orderBy: { acceptedAt: "desc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+        prisma.accountService.findMany({
+          where: { accountId: id },
+          orderBy: { purchasedAt: "desc" },
+          include: {
+            service: { select: { id: true, code: true, name: true, category: true } },
+          },
+        }),
+        prisma.companyPartner.findMany({
+          where: { accountId: id },
+          orderBy: { invitedAt: "desc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+        prisma.partnershipPartner.findMany({
+          where: { accountId: id },
+          orderBy: { invitedAt: "desc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+        prisma.trustPartner.findMany({
+          where: { accountId: id },
+          orderBy: { invitedAt: "desc" },
+          include: { user: { select: { id: true, name: true, email: true } } },
+        }),
+      ]);
+
+      const linkedUsers = [
+        ...(account.user
+          ? [
+              {
+                relationType: "OWNER",
+                role: "Owner",
+                status: "APPROVED",
+                userId: account.user.id,
+                name: account.user.name,
+                email: account.user.email,
+                invitedAt: account.createdAt,
+                respondedAt: account.createdAt,
+                isDirector: false,
+                isShareholder: false,
+              },
+            ]
+          : []),
+        ...companyPartners.map((p) => ({
+          relationType: "COMPANY_PARTNER",
+          role: p.role || `${p.isDirector ? "Director " : ""}${p.isShareholder ? "Shareholder" : ""}`.trim() || "Partner",
+          status: p.status,
+          userId: p.userId,
+          name: p.name || p.user?.name || null,
+          email: p.email,
+          invitedAt: p.invitedAt,
+          respondedAt: p.respondedAt,
+          isDirector: p.isDirector,
+          isShareholder: p.isShareholder,
+        })),
+        ...partnershipPartners.map((p) => ({
+          relationType: "PARTNERSHIP_PARTNER",
+          role: p.role || "Partner",
+          status: p.status,
+          userId: p.userId,
+          name: p.name || p.user?.name || null,
+          email: p.email,
+          invitedAt: p.invitedAt,
+          respondedAt: p.respondedAt,
+          isDirector: false,
+          isShareholder: false,
+        })),
+        ...trustPartners.map((p) => ({
+          relationType: "TRUST_PARTNER",
+          role: p.role || "Trust Partner",
+          status: p.status,
+          userId: p.userId,
+          name: p.name || p.user?.name || null,
+          email: p.email,
+          invitedAt: p.invitedAt,
+          respondedAt: p.respondedAt,
+          isDirector: false,
+          isShareholder: false,
+        })),
+      ];
+
+      const uniqueByEmail = new Map<string, (typeof linkedUsers)[number]>();
+      for (const row of linkedUsers) {
+        const key = row.email.toLowerCase();
+        if (!uniqueByEmail.has(key)) uniqueByEmail.set(key, row);
+      }
+      const uniqueLinkedUsers = Array.from(uniqueByEmail.values());
+
+      return reply.send({
+        account,
+        summary: {
+          totalLinkedUsers: uniqueLinkedUsers.length,
+          totalDirectors: uniqueLinkedUsers.filter((u) => u.isDirector || u.role.toLowerCase().includes("director")).length,
+          totalShareholders: uniqueLinkedUsers.filter((u) => u.isShareholder || u.role.toLowerCase().includes("shareholder")).length,
+          totalTrustees: uniqueLinkedUsers.filter((u) => u.role.toLowerCase().includes("trustee")).length,
+          totalBeneficiaries: uniqueLinkedUsers.filter((u) => u.role.toLowerCase().includes("beneficiary")).length,
+          totalConsents: consents.length,
+          totalServices: services.length,
+        },
+        data: {
+          linkedUsers: uniqueLinkedUsers,
+          consents,
+          services,
+        },
+      });
+    }
+  );
+
+  // Admin notes for Account 360 (stored in AppSettings to avoid schema migration dependency)
+  const accountNoteSchema = z.object({
+    text: z.string().trim().min(1).max(4000),
+  });
+
+  app.get(
+    "/admin/accounts/:id/notes",
+    { preHandler: [authMiddleware, requirePermission("manage_users")] },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const account = await accountRepo.findById(id);
+      if (!account) return reply.status(404).send({ error: "Account not found" });
+
+      const key = `account_360_notes_${id}`;
+      const raw = await settingsRepo.getValue(key, "[]");
+      let notes: Array<{
+        id: string;
+        text: string;
+        createdAt: string;
+        createdByUserId: string;
+        createdByName: string;
+      }> = [];
+      try {
+        const parsed = JSON.parse(raw) as typeof notes;
+        notes = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        notes = [];
+      }
+      return reply.send({ notes });
+    }
+  );
+
+  app.post(
+    "/admin/accounts/:id/notes",
+    { preHandler: [authMiddleware, requirePermission("manage_users")] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { id } = request.params as { id: string };
+      const parsed = accountNoteSchema.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({ error: "Validation failed", details: parsed.error.flatten() });
+      }
+
+      const account = await accountRepo.findById(id);
+      if (!account) return reply.status(404).send({ error: "Account not found" });
+
+      const key = `account_360_notes_${id}`;
+      const raw = await settingsRepo.getValue(key, "[]");
+      let notes: Array<{
+        id: string;
+        text: string;
+        createdAt: string;
+        createdByUserId: string;
+        createdByName: string;
+      }> = [];
+      try {
+        const parsedNotes = JSON.parse(raw) as typeof notes;
+        notes = Array.isArray(parsedNotes) ? parsedNotes : [];
+      } catch {
+        notes = [];
+      }
+
+      const author = await prisma.user.findUnique({
+        where: { id: req.user!.sub },
+        select: { name: true },
+      });
+
+      const note = {
+        id: `n_${Date.now()}`,
+        text: parsed.data.text,
+        createdAt: new Date().toISOString(),
+        createdByUserId: req.user!.sub,
+        createdByName: author?.name || "Admin",
+      };
+      const updated = [note, ...notes].slice(0, 100);
+      await settingsRepo.set(key, JSON.stringify(updated), "account");
+      return reply.status(201).send({ note, notes: updated });
     }
   );
 }

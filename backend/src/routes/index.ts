@@ -20,3 +20,6 @@ export { registerCmsRoutes } from "./cms.routes.js";
 export { registerForgotPasswordRoutes } from "./forgot-password.routes.js";
 // Contact / Demo request (public)
 export { registerContactRoutes } from "./contact.routes.js";
+export { registerLicenseRoutes } from "./license.routes.js";
+export { registerMailRoutes } from "./mail.routes.js";
+export { registerCustomer360Routes } from "./customer360.routes.js";

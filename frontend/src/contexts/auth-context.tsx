@@ -75,6 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await apiPost("/auth/logout", {});
     } finally {
+      if (typeof window !== "undefined") {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < window.sessionStorage.length; i += 1) {
+          const key = window.sessionStorage.key(i);
+          if (key && key.startsWith("mail")) keysToRemove.push(key);
+        }
+        keysToRemove.forEach((key) => window.sessionStorage.removeItem(key));
+      }
       setUser(null);
     }
   }, []);

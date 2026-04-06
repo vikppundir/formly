@@ -12,6 +12,7 @@ import { requirePermission } from "../middleware/permission.middleware.js";
 import { createServiceRepository } from "../repositories/service.repository.js";
 import { createAccountRepository } from "../repositories/account.repository.js";
 import { createSettingsRepository } from "../repositories/settings.repository.js";
+import { computeServicePriceBreakdown } from "../services/service-pricing.service.js";
 import { logger } from "../utils/logger.js";
 import { z } from "zod";
 import Stripe from "stripe";
@@ -115,9 +116,9 @@ export async function registerPaymentRoutes(
         return reply.status(400).send({ error: "Service already purchased for this financial year" });
       }
 
-      // Get price for account type
-      const basePrice = service.pricing[account.accountType];
-      if (basePrice === undefined) {
+      const breakdown = await computeServicePriceBreakdown(service as any, account as any, settingsRepo as any);
+      const basePrice = breakdown.total;
+      if (!Number.isFinite(basePrice)) {
         return reply.status(400).send({ error: "Price not set for this account type" });
       }
 
@@ -514,12 +515,42 @@ export async function registerPaymentRoutes(
     const settings = await getPaymentSettings();
     const publishableKey = await settingsRepo.getValue("stripe_publishable_key");
     const gateway = await settingsRepo.getValue("payment_gateway");
+    const paymentMode = await settingsRepo.getValue("payment_checkout_mode", "online");
 
     return reply.send({
       ...settings,
       gateway: gateway || "stripe",
+      paymentMode: paymentMode || "online",
       enabled: gateway !== "none" && !!publishableKey,
       publishableKey: publishableKey || null,
     });
   });
+
+  // Mark a pending purchase for invoice payment
+  app.post(
+    "/payments/request-invoice/:purchaseId",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { purchaseId } = request.params as { purchaseId: string };
+
+      const purchase = await prisma.accountService.findUnique({
+        where: { id: purchaseId },
+        include: { account: true },
+      });
+      if (!purchase) return reply.status(404).send({ error: "Purchase not found" });
+      if (purchase.account.userId !== req.user!.sub) return reply.status(403).send({ error: "Access denied" });
+      if (purchase.paymentStatus === "PAID") return reply.status(400).send({ error: "Purchase already paid" });
+
+      const updated = await prisma.accountService.update({
+        where: { id: purchaseId },
+        data: {
+          paymentMethod: "invoice",
+          paymentStatus: "PENDING",
+        },
+      });
+
+      return reply.send({ ok: true, purchase: updated });
+    }
+  );
 }

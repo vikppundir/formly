@@ -67,6 +67,7 @@ export default function ConsentsPage() {
   const [signature, setSignature] = useState("");
   const [signatureData, setSignatureData] = useState<string>("");
   const [signatureMode, setSignatureMode] = useState<"type" | "draw">("draw");
+  const [consentContent, setConsentContent] = useState<Record<ConsentType, string> | null>(null);
 
   useEffect(() => {
     if (currentAccount) {
@@ -78,12 +79,14 @@ export default function ConsentsPage() {
     if (!currentAccount) return;
     setLoading(true);
     try {
-      const [consentsRes, checkRes] = await Promise.all([
+      const [consentsRes, checkRes, contentRes] = await Promise.all([
         apiGet<{ consents: Consent[] }>(`/consents/account/${currentAccount.id}`),
         apiGet<ConsentCheck>(`/consents/check/${currentAccount.id}`),
+        apiGet<{ content: Record<ConsentType, string> }>(`/consents/content`),
       ]);
       setConsents(consentsRes.consents || []);
       setConsentCheck(checkRes);
+      setConsentContent(contentRes.content || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load consents");
     } finally {
@@ -228,7 +231,10 @@ export default function ConsentsPage() {
                 <ConsentCard
                   key={type}
                   type={type}
-                  info={CONSENT_INFO[type]}
+                  info={{
+                    ...CONSENT_INFO[type],
+                    description: consentContent?.[type] || CONSENT_INFO[type].description,
+                  }}
                   isSigned={isConsentSigned(type)}
                   signedDate={getConsentDate(type)}
                   required
@@ -250,7 +256,10 @@ export default function ConsentsPage() {
                 <ConsentCard
                   key={type}
                   type={type}
-                  info={CONSENT_INFO[type]}
+                  info={{
+                    ...CONSENT_INFO[type],
+                    description: consentContent?.[type] || CONSENT_INFO[type].description,
+                  }}
                   isSigned={isConsentSigned(type)}
                   signedDate={getConsentDate(type)}
                   onSign={() => {
@@ -276,9 +285,14 @@ export default function ConsentsPage() {
             </div>
             <div className="p-6">
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 mb-6">
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  {CONSENT_INFO[signatureModal].description}
-                </p>
+                {consentContent?.[signatureModal] ? (
+                  <div
+                    className="text-sm text-slate-700 dark:text-slate-300 prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: consentContent[signatureModal] }}
+                  />
+                ) : (
+                  <p className="text-sm text-slate-700 dark:text-slate-300">{CONSENT_INFO[signatureModal].description}</p>
+                )}
               </div>
 
               {/* Signature Mode Tabs */}
@@ -428,7 +442,10 @@ function ConsentCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-600 dark:text-white/70">{info.description}</p>
+          <div
+            className="text-sm text-slate-600 dark:text-white/70 prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ __html: info.description }}
+          />
           {isSigned && signedDate && (
             <p className="text-xs text-green-600 dark:text-green-400 mt-2">
               Signed on {signedDate}

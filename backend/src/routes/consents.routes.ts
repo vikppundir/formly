@@ -12,6 +12,7 @@ import { requirePermission } from "../middleware/permission.middleware.js";
 import { createConsentRepository } from "../repositories/consent.repository.js";
 import { createAccountRepository } from "../repositories/account.repository.js";
 import { createServiceRepository } from "../repositories/service.repository.js";
+import { createSettingsRepository } from "../repositories/settings.repository.js";
 import { z } from "zod";
 
 // Only account-level consents remain here.
@@ -45,7 +46,15 @@ export async function registerConsentsRoutes(
   const consentRepo = createConsentRepository(prisma);
   const accountRepo = createAccountRepository(prisma);
   const serviceRepo = createServiceRepository(prisma);
+  const settingsRepo = createSettingsRepository(prisma);
   const authMiddleware = createAuthMiddleware(authService);
+
+  const DEFAULT_CONSENT_CONTENT: Record<"TAX_AGENT_AUTHORITY" | "ENGAGEMENT_LETTER", string> = {
+    TAX_AGENT_AUTHORITY:
+      "<h3>Tax Agent Authority</h3><p>I authorise Onboard to act as my registered tax agent and communicate with the ATO on my behalf.</p><p>This authority remains in effect until revoked in writing.</p>",
+    ENGAGEMENT_LETTER:
+      "<h3>Engagement Letter</h3><p>I accept the engagement terms for accounting and advisory services provided by Onboard.</p><p>I understand scope, responsibilities, fees and confidentiality obligations.</p>",
+  };
 
   // =========================================================================
   // User Consent Endpoints
@@ -142,6 +151,25 @@ export async function registerConsentsRoutes(
         requiredForNonIndividual: ["ENGAGEMENT_LETTER"],
         all: CONSENT_TYPES,
         note: "TAX_AGENT_AUTHORITY is required for all. ENGAGEMENT_LETTER is required for Company/Trust/Partnership, optional for Individual. Terms of Service, Privacy Policy, and DPA are accepted at registration (user-level).",
+      });
+    }
+  );
+
+  // Get formatted consent document content (used in user sign flow + admin exports)
+  app.get(
+    "/consents/content",
+    { preHandler: [authMiddleware] },
+    async (_request, reply) => {
+      const [taxAuthorityHtml, engagementHtml] = await Promise.all([
+        settingsRepo.getValue("consent_tax_agent_authority_html", DEFAULT_CONSENT_CONTENT.TAX_AGENT_AUTHORITY),
+        settingsRepo.getValue("consent_engagement_letter_html", DEFAULT_CONSENT_CONTENT.ENGAGEMENT_LETTER),
+      ]);
+
+      return reply.send({
+        content: {
+          TAX_AGENT_AUTHORITY: taxAuthorityHtml || DEFAULT_CONSENT_CONTENT.TAX_AGENT_AUTHORITY,
+          ENGAGEMENT_LETTER: engagementHtml || DEFAULT_CONSENT_CONTENT.ENGAGEMENT_LETTER,
+        },
       });
     }
   );

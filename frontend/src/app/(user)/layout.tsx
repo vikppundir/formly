@@ -9,6 +9,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
+import { useLicence } from "@/contexts/license-context";
+import { LicenceBlockScreen } from "@/components/licence-block-screen";
 import { AccountProvider, useAccount } from "@/contexts/account-context";
 import { useEffect, useState } from "react";
 
@@ -193,6 +195,9 @@ function AccountSwitcher() {
 
 function UserLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isAdmin } = useAuth();
+  const licence = useLicence();
+  const licenceLoading = licence.loading;
+  const refreshLicence = licence.refresh;
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -213,13 +218,17 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
     setSidebarOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    void refreshLicence(true);
+  }, [pathname, refreshLicence]);
+
   async function handleLogout() {
     await logout();
     router.replace("/login");
   }
 
-  // Show loading while checking auth or redirecting admin
-  if (loading || !user || isAdmin()) {
+  // Show loading while checking auth, redirecting admin, or validating licence
+  if (loading || !user || isAdmin() || licenceLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0f172a] to-[#020617]">
         <div className="flex flex-col items-center gap-4">
@@ -229,6 +238,12 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  const shouldBlock =
+    licence.status === "EXPIRED" ||
+    licence.status === "REVOKED" ||
+    licence.status === "SUSPENDED" ||
+    (licence.enforcementMode === "LOCKOUT" && licence.hasLicenceKey);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-[#020617] dark:to-[#020617]">
@@ -427,7 +442,19 @@ function UserLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Page Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          {children}
+          {shouldBlock ? (
+            <LicenceBlockScreen
+              status={licence.status}
+              enforcementMode={licence.enforcementMode}
+              message={licence.message}
+              expiresAt={licence.expiresAt}
+              ctaHref="/dashboard/licence"
+              ctaLabel="Add Your Licence Key"
+              purchaseHref="http://localhost:3001/portal/purchase"
+            />
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

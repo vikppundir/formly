@@ -13,7 +13,13 @@ import type { Account, AccountType, IndividualProfile, CompanyProfile, TrustProf
 import { useAccount } from "@/contexts/account-context";
 import { useAuth } from "@/contexts/auth-context";
 
-type TrustType = "DISCRETIONARY" | "UNIT" | "HYBRID" | "SMSF" | "OTHER";
+type TrustType = "DISCRETIONARY" | "UNIT" | "HYBRID" | "SMSF" | "TESTAMENTARY" | "OTHER";
+
+type TrustFormState = Partial<Omit<TrustProfile, "trusteeDetails" | "beneficiaries">> & {
+  trusteeDetails?: string;
+  beneficiaries?: string;
+};
+type PartnershipFormState = Partial<Omit<PartnershipProfile, "partners">> & { partners?: string };
 
 // Partnership Partner type for the UI
 interface PartnershipPartner {
@@ -28,18 +34,6 @@ interface PartnershipPartner {
   respondedAt?: string;
 }
 
-// Trust Partner type for the UI (Trustees & Beneficiaries)
-interface TrustPartner {
-  id: string;
-  email: string;
-  name?: string;
-  role?: string;
-  beneficiaryPercent?: number;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "REMOVED";
-  user?: { id: string; name: string; email: string } | null;
-  invitedAt: string;
-  respondedAt?: string;
-}
 
 export default function AccountDetailPage() {
   const params = useParams();
@@ -58,8 +52,8 @@ export default function AccountDetailPage() {
   // Form state for different profile types
   const [individualForm, setIndividualForm] = useState<Partial<IndividualProfile>>({});
   const [companyForm, setCompanyForm] = useState<Partial<CompanyProfile>>({});
-  const [trustForm, setTrustForm] = useState<Partial<TrustProfile & { trusteeDetails: string; beneficiaries: string }>>({});
-  const [partnershipForm, setPartnershipForm] = useState<Partial<PartnershipProfile & { partners: string }>>({});
+  const [trustForm, setTrustForm] = useState<TrustFormState>({});
+  const [partnershipForm, setPartnershipForm] = useState<PartnershipFormState>({});
 
   useEffect(() => {
     loadAccount();
@@ -72,34 +66,64 @@ export default function AccountDetailPage() {
       setAccount(res.account);
       
       // Initialize form based on account type
-      if (res.account.accountType === "INDIVIDUAL" && res.account.individualProfile) {
+      if (res.account.accountType === "INDIVIDUAL") {
         const profile = res.account.individualProfile;
-        setIndividualForm({
-          ...profile,
-          // Map DB 'address' field to form 'streetAddress' field
-          streetAddress: profile.streetAddress || profile.address || "",
-          // Convert ISO date to YYYY-MM-DD format for date input
-          dateOfBirth: profile.dateOfBirth 
-            ? (typeof profile.dateOfBirth === 'string' ? profile.dateOfBirth.split('T')[0] : '')
-            : "",
-          // Convert spouseDob date format
-          spouseDob: profile.spouseDob
-            ? (typeof profile.spouseDob === 'string' ? profile.spouseDob.split('T')[0] : '')
-            : "",
-        });
-      } else if (res.account.accountType === "COMPANY" && res.account.companyProfile) {
-        setCompanyForm(res.account.companyProfile);
-      } else if (res.account.accountType === "TRUST" && res.account.trustProfile) {
-        setTrustForm({
-          ...res.account.trustProfile,
-          trusteeDetails: JSON.stringify(res.account.trustProfile.trusteeDetails || [], null, 2),
-          beneficiaries: JSON.stringify(res.account.trustProfile.beneficiaries || [], null, 2),
-        });
-      } else if (res.account.accountType === "PARTNERSHIP" && res.account.partnershipProfile) {
-        setPartnershipForm({
-          ...res.account.partnershipProfile,
-          partners: JSON.stringify(res.account.partnershipProfile.partners || [], null, 2),
-        });
+        if (profile) {
+          setIndividualForm({
+            ...profile,
+            streetAddress: profile.streetAddress || profile.address || "",
+            dateOfBirth: profile.dateOfBirth
+              ? (typeof profile.dateOfBirth === "string" ? profile.dateOfBirth.split("T")[0] : "")
+              : "",
+            spouseDob: profile.spouseDob
+              ? (typeof profile.spouseDob === "string" ? profile.spouseDob.split("T")[0] : "")
+              : "",
+          });
+        } else {
+          setIndividualForm({});
+        }
+      } else if (res.account.accountType === "COMPANY") {
+        const cp = res.account.companyProfile;
+        setCompanyForm(
+          cp
+            ? { ...cp }
+            : {
+                postalSameAsBusiness: true,
+                directorCount: 1,
+                selfIsDirector: true,
+                selfIsShareholder: false,
+              }
+        );
+      } else if (res.account.accountType === "TRUST") {
+        const tp = res.account.trustProfile;
+        if (tp) {
+          const rawTrustee = tp.trusteeDetails;
+          const rawBens = tp.beneficiaries;
+          setTrustForm({
+            ...tp,
+            trusteeDetails: typeof rawTrustee === "string" ? rawTrustee : JSON.stringify(rawTrustee || [], null, 2),
+            beneficiaries: typeof rawBens === "string" ? rawBens : JSON.stringify(rawBens || [], null, 2),
+          });
+        } else {
+          setTrustForm({
+            trusteeDetails: JSON.stringify(
+              [{ type: "INDIVIDUAL", fullName: "", address: { street: "", suburb: "", state: "", postcode: "", country: "Australia" } }],
+              null,
+              2
+            ),
+            beneficiaries: JSON.stringify([], null, 2),
+          });
+        }
+      } else if (res.account.accountType === "PARTNERSHIP") {
+        const pp = res.account.partnershipProfile;
+        if (pp) {
+          setPartnershipForm({
+            ...pp,
+            partners: JSON.stringify(pp.partners || [], null, 2),
+          });
+        } else {
+          setPartnershipForm({ partners: JSON.stringify([], null, 2) });
+        }
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load account");
@@ -118,8 +142,27 @@ export default function AccountDetailPage() {
       let profile: Record<string, unknown> = {};
       
       if (account.accountType === "INDIVIDUAL") {
+        const firstName = (individualForm.firstName || "").trim();
+        const lastName = (individualForm.lastName || "").trim();
+        const gender = (individualForm.gender || "").trim();
         const rawTfn = (individualForm.tfn || "").replace(/\s/g, "");
         const isMaskedTfn = rawTfn.includes("*"); // Masked from API e.g. "*******21"
+
+        if (!firstName) {
+          setError("First name is required for Individual accounts.");
+          setSaving(false);
+          return;
+        }
+        if (!lastName) {
+          setError("Last name is required for Individual accounts.");
+          setSaving(false);
+          return;
+        }
+        if (!gender) {
+          setError("Gender is required for Individual accounts.");
+          setSaving(false);
+          return;
+        }
 
         // If TFN is not masked (user entered a new one), validate it
         if (!isMaskedTfn) {
@@ -138,6 +181,9 @@ export default function AccountDetailPage() {
         // Ensure boolean and date fields are properly typed
         profile = {
           ...individualForm,
+          firstName,
+          lastName,
+          gender,
           // Only send TFN if user entered a new value (not masked)
           tfn: isMaskedTfn ? undefined : rawTfn,
           hasAbn: !!individualForm.hasAbn,
@@ -149,8 +195,13 @@ export default function AccountDetailPage() {
         const companyTfn = (companyForm.tfn || "").replace(/\s/g, "");
         const isMaskedCompanyTfn = companyTfn.includes("*");
 
-        // Validate TFN if user entered a new one (not masked)
-        if (!isMaskedCompanyTfn && companyTfn) {
+        // TFN is required for Company accounts
+        if (!isMaskedCompanyTfn) {
+          if (!companyTfn) {
+            setError("Tax File Number (TFN) is required for Company accounts.");
+            setSaving(false);
+            return;
+          }
           if (!/^\d{8,9}$/.test(companyTfn)) {
             setError("TFN must be 8 or 9 digits.");
             setSaving(false);
@@ -165,22 +216,92 @@ export default function AccountDetailPage() {
           gstRegistered: !!companyForm.gstRegistered,
           postalSameAsBusiness: companyForm.postalSameAsBusiness !== false,
           directorCount: companyForm.directorCount || 1,
+          selfDirectorId: companyForm.selfDirectorId?.replace(/\s/g, "").trim()
+            ? companyForm.selfDirectorId.replace(/\s/g, "").trim()
+            : null,
         };
       } else if (account.accountType === "TRUST") {
-        const trustTfn = (trustForm.tfn || "").replace(/\s/g, "");
-        const isMaskedTrustTfn = trustTfn.includes("*");
+        const trustTfnRaw = (trustForm.tfn || "").replace(/\s/g, "");
+        const isMaskedTrustTfn = trustTfnRaw.includes("*");
+
+        if (!isMaskedTrustTfn) {
+          if (!trustTfnRaw) {
+            setError("Tax File Number (TFN) is required for Trust accounts.");
+            setSaving(false);
+            return;
+          }
+          if (!/^\d{8,9}$/.test(trustTfnRaw)) {
+            setError("TFN must be 8 or 9 digits.");
+            setSaving(false);
+            return;
+          }
+        }
+
+        let trusteeDetailsParsed: unknown = [];
+        let beneficiariesParsed: unknown = [];
+        try {
+          trusteeDetailsParsed = trustForm.trusteeDetails
+            ? typeof trustForm.trusteeDetails === "string"
+              ? JSON.parse(trustForm.trusteeDetails)
+              : trustForm.trusteeDetails
+            : [];
+          if (!Array.isArray(trusteeDetailsParsed)) trusteeDetailsParsed = [];
+        } catch {
+          setError("Trustee details contain invalid JSON.");
+          setSaving(false);
+          return;
+        }
+        try {
+          beneficiariesParsed = trustForm.beneficiaries
+            ? typeof trustForm.beneficiaries === "string"
+              ? JSON.parse(trustForm.beneficiaries)
+              : trustForm.beneficiaries
+            : [];
+          if (!Array.isArray(beneficiariesParsed)) beneficiariesParsed = [];
+        } catch {
+          setError("Beneficiaries contain invalid JSON.");
+          setSaving(false);
+          return;
+        }
+
+        const abnDigits = (trustForm.abn || "").replace(/\D/g, "").slice(0, 11);
+
         profile = {
-          ...trustForm,
-          tfn: isMaskedTrustTfn ? undefined : (trustTfn || undefined),
-          trusteeDetails: trustForm.trusteeDetails ? JSON.parse(trustForm.trusteeDetails) : [],
-          beneficiaries: trustForm.beneficiaries ? JSON.parse(trustForm.beneficiaries) : [],
+          trustName: trustForm.trustName,
+          trustType: trustForm.trustType,
+          tfn: isMaskedTrustTfn ? undefined : trustTfnRaw || undefined,
+          abn: abnDigits || null,
+          trusteeDetails: trusteeDetailsParsed,
+          beneficiaries: beneficiariesParsed,
         };
       } else if (account.accountType === "PARTNERSHIP") {
         const partnerTfn = (partnershipForm.tfn || "").replace(/\s/g, "");
         const isMaskedPartnerTfn = partnerTfn.includes("*");
+
+        // TFN is required for Partnership accounts
+        if (!isMaskedPartnerTfn) {
+          if (!partnerTfn) {
+            setError("Tax File Number (TFN) is required for Partnership accounts.");
+            setSaving(false);
+            return;
+          }
+          if (!/^\d{8,9}$/.test(partnerTfn)) {
+            setError("TFN must be 8 or 9 digits.");
+            setSaving(false);
+            return;
+          }
+        }
+
+        const rawSelfPct = partnershipForm.selfOwnershipPercent as number | string | undefined | null;
+        const selfPct =
+          rawSelfPct === undefined || rawSelfPct === null || rawSelfPct === ""
+            ? undefined
+            : Number(rawSelfPct);
+
         profile = {
           ...partnershipForm,
           tfn: isMaskedPartnerTfn ? undefined : (partnerTfn || undefined),
+          ...(selfPct !== undefined && !Number.isNaN(selfPct) ? { selfOwnershipPercent: selfPct } : {}),
           partners: partnershipForm.partners ? JSON.parse(partnershipForm.partners) : [],
         };
       }
@@ -216,7 +337,7 @@ export default function AccountDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -277,16 +398,16 @@ export default function AccountDetailPage() {
         <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Profile Details</h2>
         
         {account.accountType === "INDIVIDUAL" && (
-          <IndividualForm form={individualForm} setForm={setIndividualForm} accountId={accountId} />
+          <IndividualForm form={individualForm} setForm={setIndividualForm} accountId={accountId} formError={error} />
         )}
         {account.accountType === "COMPANY" && (
-          <CompanyForm form={companyForm} setForm={setCompanyForm} accountId={accountId} ownerName={user?.name || ""} ownerEmail={user?.email || ""} />
+          <CompanyForm form={companyForm} setForm={setCompanyForm} accountId={accountId} ownerName={user?.name || ""} ownerEmail={user?.email || ""} formError={error} />
         )}
         {account.accountType === "TRUST" && (
           <TrustForm form={trustForm} setForm={setTrustForm} accountId={accountId} />
         )}
         {account.accountType === "PARTNERSHIP" && (
-          <PartnershipForm form={partnershipForm} setForm={setPartnershipForm} accountId={accountId} ownerName={user?.name || ""} ownerEmail={user?.email || ""} />
+          <PartnershipForm form={partnershipForm} setForm={setPartnershipForm} accountId={accountId} ownerName={user?.name || ""} ownerEmail={user?.email || ""} formError={error} />
         )}
 
         <div className="flex gap-3 pt-6 mt-6 border-t border-slate-200 dark:border-white/10">
@@ -294,7 +415,7 @@ export default function AccountDetailPage() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#0891b2] to-[#0e7490] text-white font-medium hover:shadow-lg hover:shadow-[#0891b2]/30 transition-all disabled:opacity-50"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#E91E8C] to-[#c4177a] text-white font-medium hover:shadow-lg hover:shadow-[#E91E8C]/30 transition-all disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>
@@ -303,7 +424,7 @@ export default function AccountDetailPage() {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-6 py-3 rounded-xl border border-[#0891b2] text-[#0891b2] font-medium hover:bg-[#0891b2]/10 transition-all disabled:opacity-50"
+              className="px-6 py-3 rounded-xl border border-[#E91E8C] text-[#E91E8C] font-medium hover:bg-[#E91E8C]/10 transition-all disabled:opacity-50"
             >
               {submitting ? "Submitting..." : "Submit for Review"}
             </button>
@@ -315,34 +436,9 @@ export default function AccountDetailPage() {
       <div className="bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 p-6 mt-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Agreements & Signed Documents</h2>
-          <a href="/user-dashboard/consents" className="text-sm text-[#0891b2] hover:underline">
+          <a href="/user-dashboard/consents" className="text-sm text-[#E91E8C] hover:underline">
             Manage Consents
           </a>
-        </div>
-
-        {/* Registration-time agreements (user-level, read-only) */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider mb-3">Accepted at Registration</p>
-          <div className="space-y-2">
-            {[
-              { label: "Terms of Service", date: user?.termsAcceptedAt, link: "/p/terms-of-service" },
-              { label: "Privacy Policy", date: user?.privacyAcceptedAt, link: "/p/privacy-policy" },
-              { label: "Data Processing Agreement", date: user?.dpaAcceptedAt, link: "/p/data-processing-agreement" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-3">
-                  <svg className="w-5 h-5 text-green-500 dark:text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <div>
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-medium text-sm text-slate-900 dark:text-white hover:text-[#0891b2] transition-colors">{item.label}</a>
-                    {item.date && (
-                      <p className="text-xs text-slate-400 dark:text-white/40">Accepted on {new Date(item.date).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}</p>
-                    )}
-                  </div>
-                </div>
-                <span className="text-xs font-medium text-green-600 dark:text-green-400">Accepted</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Account-level consents (Tax Agent Authority, Engagement Letter) */}
@@ -376,7 +472,7 @@ export default function AccountDetailPage() {
         {/* Link to sign pending consents */}
         {(!account.legalConsents || !account.legalConsents.some((c) => c.consentType === "TAX_AGENT_AUTHORITY")) && (
           <div className="mt-3">
-            <a href="/user-dashboard/consents" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors">
+            <a href="/user-dashboard/consents" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
               Sign Required Documents
             </a>
@@ -392,10 +488,12 @@ function IndividualForm({
   form,
   setForm,
   accountId,
+  formError,
 }: {
   form: Partial<IndividualProfile>;
   setForm: React.Dispatch<React.SetStateAction<Partial<IndividualProfile>>>;
   accountId: string;
+  formError?: string;
 }) {
   const [abnLookupEnabled, setAbnLookupEnabled] = useState(false);
   const [lookingUpAbn, setLookingUpAbn] = useState(false);
@@ -414,6 +512,11 @@ function IndividualForm({
   const [spouseInviteResult, setSpouseInviteResult] = useState("");
   const [checkingSpouseEmail, setCheckingSpouseEmail] = useState(false);
   const [spouseEmailExists, setSpouseEmailExists] = useState<{ exists: boolean; name?: string } | null>(null);
+  const firstNameError = formError && formError.toLowerCase().includes("first name") ? formError : "";
+  const lastNameError = formError && formError.toLowerCase().includes("last name") ? formError : "";
+  const genderError = formError && formError.toLowerCase().includes("gender") ? formError : "";
+  const tfnError = formError && formError.toLowerCase().includes("tfn") ? formError : "";
+  const postcodeError = formError && formError.toLowerCase().includes("postcode") ? formError : "";
 
   // Check if ABN lookup is enabled
   useEffect(() => {
@@ -518,6 +621,7 @@ function IndividualForm({
       <div>
         <label className={labelClass}>First Name <span className="text-red-500">*</span></label>
         <input type="text" value={form.firstName || ""} onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))} placeholder="John" className={inputClass} />
+        {firstNameError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{firstNameError}</p>}
       </div>
       <div>
         <label className={labelClass}>Middle Name <span className="text-slate-400">(optional)</span></label>
@@ -526,10 +630,22 @@ function IndividualForm({
       <div>
         <label className={labelClass}>Last Name <span className="text-red-500">*</span></label>
         <input type="text" value={form.lastName || ""} onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))} placeholder="Smith" className={inputClass} />
+        {lastNameError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{lastNameError}</p>}
       </div>
       <div>
         <label className={labelClass}>Date of Birth</label>
         <input type="date" value={form.dateOfBirth || ""} onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))} className={inputClass} />
+      </div>
+      <div>
+        <label className={labelClass}>Gender <span className="text-red-500">*</span></label>
+        <select value={form.gender || ""} onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))} className={inputClass}>
+          <option value="">Select Gender</option>
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+          <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
+        </select>
+        {genderError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{genderError}</p>}
       </div>
       <div>
         <label className={labelClass}>TFN <span className="text-red-500">*</span></label>
@@ -563,6 +679,7 @@ function IndividualForm({
           />
         )}
         <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Tax File Number (required, unique per account). Stored encrypted.</p>
+        {tfnError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{tfnError}</p>}
       </div>
 
       {/* ============================================================ */}
@@ -584,7 +701,7 @@ function IndividualForm({
               }));
               setAbnLookupResult(null);
             }}
-            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have an ABN?</span>
@@ -712,7 +829,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.gstRegistered || false}
             onChange={(e) => setForm((f) => ({ ...f, gstRegistered: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Are you registered for GST?</span>
@@ -730,7 +847,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.hasMedicalCard || false}
             onChange={(e) => setForm((f) => ({ ...f, hasMedicalCard: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have a Health Care / Medicare Card?</span>
@@ -784,7 +901,15 @@ function IndividualForm({
       </div>
       <div>
         <label className={labelClass}>Postcode</label>
-        <input type="text" value={form.postcode || ""} onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))} maxLength={4} placeholder="2000" className={inputClass} />
+        <input
+          type="text"
+          value={form.postcode || ""}
+          onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+          maxLength={4}
+          placeholder="2000"
+          className={inputClass}
+        />
+        {postcodeError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{postcodeError}</p>}
       </div>
       <div>
         <label className={labelClass}>Country</label>
@@ -842,7 +967,7 @@ function IndividualForm({
                     name="spouseInAustralia"
                     checked={form.spouseInAustralia === true}
                     onChange={() => setForm((f) => ({ ...f, spouseInAustralia: true }))}
-                    className="w-4 h-4 text-[#0891b2] focus:ring-[#0891b2]"
+                    className="w-4 h-4 text-[#E91E8C] focus:ring-[#E91E8C]"
                   />
                   <span className="text-sm text-slate-700 dark:text-white/80">Yes, in Australia</span>
                 </label>
@@ -852,7 +977,7 @@ function IndividualForm({
                     name="spouseInAustralia"
                     checked={form.spouseInAustralia === false}
                     onChange={() => setForm((f) => ({ ...f, spouseInAustralia: false, spouseStatus: undefined }))}
-                    className="w-4 h-4 text-[#0891b2] focus:ring-[#0891b2]"
+                    className="w-4 h-4 text-[#E91E8C] focus:ring-[#E91E8C]"
                   />
                   <span className="text-sm text-slate-700 dark:text-white/80">No, overseas</span>
                 </label>
@@ -900,7 +1025,7 @@ function IndividualForm({
                       />
                       {checkingSpouseEmail && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-[#E91E8C] border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
                     </div>
@@ -941,7 +1066,7 @@ function IndividualForm({
                       type="button"
                       onClick={handleSendSpouseInvite}
                       disabled={sendingSpouseInvite || !form.spouseName || !form.spouseEmail}
-                      className="px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors disabled:opacity-50"
+                      className="px-4 py-2 rounded-xl bg-[#E91E8C] text-white text-sm font-medium hover:bg-[#c4177a] transition-colors disabled:opacity-50"
                     >
                       {sendingSpouseInvite ? "Sending..." : form.spouseStatus === "PENDING" ? "Resend Invitation" : "Send Invitation"}
                     </button>
@@ -1025,7 +1150,7 @@ function IndividualForm({
             type="checkbox"
             checked={form.hasRentalIncome || false}
             onChange={(e) => setForm((f) => ({ ...f, hasRentalIncome: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
           />
           <div>
             <span className="font-medium text-slate-900 dark:text-white">Do you have rental property income?</span>
@@ -1051,6 +1176,122 @@ function IndividualForm({
 // ============================================================================
 const AU_STATES = ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"];
 
+type RentalPropertyDraft = {
+  address: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  ownershipPercent: number;
+};
+
+const RENTAL_PROPERTY_DRAFT_EMPTY: RentalPropertyDraft = {
+  address: "",
+  suburb: "",
+  state: "",
+  postcode: "",
+  ownershipPercent: 100,
+};
+
+/** Module-level form so React identity stays stable — avoids input blur on each parent re-render. */
+function RentalPropertyForm({
+  data,
+  setData,
+  onSubmit,
+  submitLabel,
+  onCancel,
+  saving,
+}: {
+  data: RentalPropertyDraft;
+  setData: React.Dispatch<React.SetStateAction<RentalPropertyDraft>>;
+  onSubmit: () => void;
+  submitLabel: string;
+  onCancel: () => void;
+  saving: boolean;
+}) {
+  const inputCls =
+    "w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm";
+  const lblCls = "block text-xs font-medium text-slate-600 dark:text-white/70 mb-1";
+
+  return (
+    <div className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 space-y-3">
+      <div>
+        <label className={lblCls}>Property Address *</label>
+        <input
+          className={inputCls}
+          placeholder="e.g. 42 Wallaby Way, Sydney"
+          value={data.address}
+          onChange={(e) => setData((d) => ({ ...d, address: e.target.value }))}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className={lblCls}>Suburb</label>
+          <input
+            className={inputCls}
+            placeholder="Suburb"
+            value={data.suburb}
+            onChange={(e) => setData((d) => ({ ...d, suburb: e.target.value }))}
+          />
+        </div>
+        <div>
+          <label className={lblCls}>State</label>
+          <select className={inputCls} value={data.state} onChange={(e) => setData((d) => ({ ...d, state: e.target.value }))}>
+            <option value="">Select</option>
+            {AU_STATES.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={lblCls}>Postcode</label>
+          <input
+            className={inputCls}
+            placeholder="0000"
+            maxLength={4}
+            value={data.postcode}
+            onChange={(e) => setData((d) => ({ ...d, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+          />
+        </div>
+      </div>
+      <div>
+        <label className={lblCls}>Ownership Percentage *</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min={0.01}
+            max={100}
+            step={0.01}
+            className={inputCls + " w-32"}
+            value={data.ownershipPercent}
+            onChange={(e) => setData((d) => ({ ...d, ownershipPercent: parseFloat(e.target.value) || 0 }))}
+          />
+          <span className="text-sm text-slate-500 dark:text-white/50">%</span>
+        </div>
+        <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Enter your ownership share (e.g. 100 for sole owner, 50 for 50%)</p>
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={saving}
+          className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors"
+        >
+          {saving ? "Saving..." : submitLabel}
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function RentalPropertiesSection({
   accountId,
   properties,
@@ -1066,10 +1307,8 @@ function RentalPropertiesSection({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  // New property form state
-  const emptyProp = { address: "", suburb: "", state: "", postcode: "", ownershipPercent: 100 };
-  const [newProp, setNewProp] = useState(emptyProp);
-  const [editProp, setEditProp] = useState(emptyProp);
+  const [newProp, setNewProp] = useState<RentalPropertyDraft>(RENTAL_PROPERTY_DRAFT_EMPTY);
+  const [editProp, setEditProp] = useState<RentalPropertyDraft>(RENTAL_PROPERTY_DRAFT_EMPTY);
 
   const handleAdd = async () => {
     if (!newProp.address.trim()) { setError("Property address is required"); return; }
@@ -1080,7 +1319,7 @@ function RentalPropertiesSection({
       const res = await apiPost(`/accounts/${accountId}/rental-properties`, newProp);
       if (res.error) { setError(res.error); setSaving(false); return; }
       onUpdate([res.property, ...properties]);
-      setNewProp(emptyProp);
+      setNewProp(RENTAL_PROPERTY_DRAFT_EMPTY);
       setShowAddForm(false);
     } catch { setError("Failed to add property"); }
     setSaving(false);
@@ -1123,70 +1362,6 @@ function RentalPropertiesSection({
     setError("");
   };
 
-  const inputCls = "w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white text-sm";
-  const lblCls = "block text-xs font-medium text-slate-600 dark:text-white/70 mb-1";
-
-  const PropertyForm = ({ data, setData, onSubmit, submitLabel, onCancel }: {
-    data: typeof emptyProp;
-    setData: React.Dispatch<React.SetStateAction<typeof emptyProp>>;
-    onSubmit: () => void;
-    submitLabel: string;
-    onCancel: () => void;
-  }) => (
-    <div className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 space-y-3">
-      <div>
-        <label className={lblCls}>Property Address *</label>
-        <input
-          className={inputCls}
-          placeholder="e.g. 42 Wallaby Way, Sydney"
-          value={data.address}
-          onChange={(e) => setData((d) => ({ ...d, address: e.target.value }))}
-        />
-      </div>
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className={lblCls}>Suburb</label>
-          <input className={inputCls} placeholder="Suburb" value={data.suburb} onChange={(e) => setData((d) => ({ ...d, suburb: e.target.value }))} />
-        </div>
-        <div>
-          <label className={lblCls}>State</label>
-          <select className={inputCls} value={data.state} onChange={(e) => setData((d) => ({ ...d, state: e.target.value }))}>
-            <option value="">Select</option>
-            {AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={lblCls}>Postcode</label>
-          <input className={inputCls} placeholder="0000" maxLength={4} value={data.postcode} onChange={(e) => setData((d) => ({ ...d, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) }))} />
-        </div>
-      </div>
-      <div>
-        <label className={lblCls}>Ownership Percentage *</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={0.01}
-            max={100}
-            step={0.01}
-            className={inputCls + " w-32"}
-            value={data.ownershipPercent}
-            onChange={(e) => setData((d) => ({ ...d, ownershipPercent: parseFloat(e.target.value) || 0 }))}
-          />
-          <span className="text-sm text-slate-500 dark:text-white/50">%</span>
-        </div>
-        <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Enter your ownership share (e.g. 100 for sole owner, 50 for 50%)</p>
-      </div>
-      <div className="flex gap-2 pt-1">
-        <button onClick={onSubmit} disabled={saving} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
-          {saving ? "Saving..." : submitLabel}
-        </button>
-        <button onClick={onCancel} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-          Cancel
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-3">
       {error && <div className="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-sm">{error}</div>}
@@ -1198,26 +1373,27 @@ function RentalPropertiesSection({
             <div key={p.id} className="rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 overflow-hidden">
               {editingId === p.id ? (
                 <div className="p-3">
-                  <PropertyForm
+                  <RentalPropertyForm
                     data={editProp}
                     setData={setEditProp}
                     onSubmit={() => handleUpdate(p.id)}
                     submitLabel="Update Property"
                     onCancel={() => { setEditingId(null); setError(""); }}
+                    saving={saving}
                   />
                 </div>
               ) : (
                 <div className="flex items-center justify-between p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-[#0891b2] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                      <svg className="w-4 h-4 text-[#E91E8C] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                       <span className="font-medium text-slate-900 dark:text-white text-sm truncate">{p.address}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-white/50">
                       {p.suburb && <span>{p.suburb}</span>}
                       {p.state && <span>{p.state}</span>}
                       {p.postcode && <span>{p.postcode}</span>}
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium">
                         {Number(p.ownershipPercent)}% ownership
                       </span>
                     </div>
@@ -1225,7 +1401,7 @@ function RentalPropertiesSection({
                   <div className="flex items-center gap-1 ml-3">
                     <button
                       onClick={() => startEdit(p)}
-                      className="p-2 rounded-lg text-slate-400 hover:text-[#0891b2] hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                      className="p-2 rounded-lg text-slate-400 hover:text-[#E91E8C] hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
                       title="Edit"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -1252,17 +1428,18 @@ function RentalPropertiesSection({
 
       {/* Add property form / button */}
       {showAddForm ? (
-        <PropertyForm
+        <RentalPropertyForm
           data={newProp}
           setData={setNewProp}
           onSubmit={handleAdd}
           submitLabel="Add Property"
-          onCancel={() => { setShowAddForm(false); setNewProp(emptyProp); setError(""); }}
+          onCancel={() => { setShowAddForm(false); setNewProp(RENTAL_PROPERTY_DRAFT_EMPTY); setError(""); }}
+          saving={saving}
         />
       ) : (
         <button
           onClick={() => { setShowAddForm(true); setError(""); }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
           Add Property
@@ -1298,6 +1475,7 @@ interface CompanyPartnerItem {
   isDirector?: boolean;
   isShareholder?: boolean;
   shareCount?: number;
+  directorId?: string;
   status: string;
 }
 
@@ -1307,12 +1485,14 @@ function CompanyForm({
   accountId,
   ownerName,
   ownerEmail,
+  formError,
 }: {
   form: Partial<CompanyProfile>;
   setForm: React.Dispatch<React.SetStateAction<Partial<CompanyProfile>>>;
   accountId: string;
   ownerName: string;
   ownerEmail: string;
+  formError?: string;
 }) {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white";
   const labelClass = "block text-sm font-medium text-slate-700 dark:text-white/80 mb-2";
@@ -1322,7 +1502,7 @@ function CompanyForm({
   const [partners, setPartners] = useState<CompanyPartnerItem[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(false);
   const [showAddDirector, setShowAddDirector] = useState(false);
-  const [newDirector, setNewDirector] = useState({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0 });
+  const [newDirector, setNewDirector] = useState({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0, directorId: "" });
   const [addingDirector, setAddingDirector] = useState(false);
   const [directorError, setDirectorError] = useState("");
   const [directorSuccess, setDirectorSuccess] = useState("");
@@ -1330,7 +1510,7 @@ function CompanyForm({
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ name: string; email: string; isDirector: boolean; isShareholder: boolean; shareCount: number }>({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0 });
+  const [editForm, setEditForm] = useState<{ name: string; email: string; isDirector: boolean; isShareholder: boolean; shareCount: number; directorId: string }>({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0, directorId: "" });
   const [savingEdit, setSavingEdit] = useState(false);
   const [originalEmail, setOriginalEmail] = useState("");
 
@@ -1338,6 +1518,8 @@ function CompanyForm({
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ exists: boolean; name?: string } | null>(null);
   const emailCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tfnError = formError && formError.toLowerCase().includes("tfn") ? formError : "";
+  const postalCodeError = formError && formError.toLowerCase().includes("postal") && formError.toLowerCase().includes("postcode") ? formError : "";
 
   useEffect(() => {
     loadPartners();
@@ -1389,6 +1571,7 @@ function CompanyForm({
         isDirector: newDirector.isDirector,
         isShareholder: newDirector.isShareholder,
         shareCount: newDirector.isShareholder ? newDirector.shareCount : undefined,
+        directorId: newDirector.directorId || undefined,
       });
       if ((res as unknown as { error?: string }).error) { setDirectorError((res as unknown as { error: string }).error); setAddingDirector(false); return; }
       setPartners((p) => [...p, res.partner]);
@@ -1398,7 +1581,7 @@ function CompanyForm({
       } else {
         setDirectorSuccess(`Registration invitation sent to ${newDirector.email}. Once they register, they can accept the request from their dashboard.`);
       }
-      setNewDirector({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0 });
+      setNewDirector({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0, directorId: "" });
       setEmailStatus(null);
       setShowAddDirector(false);
     } catch (e) { setDirectorError(e instanceof Error ? e.message : "Failed to add"); }
@@ -1426,6 +1609,7 @@ function CompanyForm({
       isDirector: p.isDirector ?? true,
       isShareholder: p.isShareholder ?? false,
       shareCount: p.shareCount ?? 0,
+      directorId: p.directorId || "",
     });
     setDirectorError("");
     setDirectorSuccess("");
@@ -1433,7 +1617,7 @@ function CompanyForm({
 
   function cancelEdit() {
     setEditingId(null);
-    setEditForm({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0 });
+    setEditForm({ name: "", email: "", isDirector: true, isShareholder: false, shareCount: 0, directorId: "" });
   }
 
   async function handleSaveEdit() {
@@ -1452,6 +1636,7 @@ function CompanyForm({
         isDirector: editForm.isDirector,
         isShareholder: editForm.isShareholder,
         shareCount: editForm.isShareholder ? editForm.shareCount : null,
+        directorId: editForm.directorId || null,
       });
       // Update local state
       setPartners((prev) => prev.map((p) => p.id === editingId ? { ...p, ...res.partner } : p));
@@ -1490,7 +1675,7 @@ function CompanyForm({
         <input type="text" value={form.acn || ""} onChange={(e) => setForm((f) => ({ ...f, acn: e.target.value.replace(/\D/g, "").slice(0, 9) }))} placeholder="9 digit ACN" maxLength={9} className={inputClass} />
       </div>
       <div>
-        <label className={labelClass}>TFN</label>
+        <label className={labelClass}>TFN <span className="text-red-500">*</span></label>
         {form.tfn && form.tfn.includes("*") ? (
           /* TFN is masked from server — show read-only with change option */
           <div className="flex items-center gap-2">
@@ -1519,6 +1704,7 @@ function CompanyForm({
             className={inputClass}
           />
         )}
+        {tfnError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{tfnError}</p>}
       </div>
 
       {/* ============================================================ */}
@@ -1557,14 +1743,14 @@ function CompanyForm({
         <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
           <input
             type="checkbox"
-            checked={form.postalSameAsBusiness !== false}
+            checked={form.postalSameAsBusiness === true}
             onChange={(e) => setForm((f) => ({ ...f, postalSameAsBusiness: e.target.checked }))}
-            className="w-5 h-5 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+            className="w-5 h-5 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
           />
           <span className="text-sm text-slate-700 dark:text-white/80">Same as business address</span>
         </label>
       </div>
-      {form.postalSameAsBusiness === false && (
+      {!form.postalSameAsBusiness && (
         <>
           <div className="sm:col-span-3">
             <label className={labelClass}>Postal Street Address</label>
@@ -1584,6 +1770,7 @@ function CompanyForm({
           <div>
             <label className={labelClass}>Postcode</label>
             <input type="text" value={form.postalPostcode || ""} onChange={(e) => setForm((f) => ({ ...f, postalPostcode: e.target.value.replace(/\D/g, "").slice(0, 4) }))} maxLength={4} className={inputClass} />
+            {postalCodeError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{postalCodeError}</p>}
           </div>
         </>
       )}
@@ -1626,15 +1813,15 @@ function CompanyForm({
 
       {/* Self (account owner) — always first in the list, not removable */}
       <div className="sm:col-span-3">
-        <div className="p-4 rounded-xl border-2 border-[#0891b2]/30 bg-gradient-to-r from-[#0891b2]/5 to-transparent dark:from-[#0891b2]/10">
+        <div className="p-4 rounded-xl border-2 border-[#E91E8C]/30 bg-gradient-to-r from-[#E91E8C]/5 to-transparent dark:from-[#E91E8C]/10">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-[#0891b2]/10 flex items-center justify-center text-[#0891b2] font-bold text-sm shrink-0">
+            <div className="w-9 h-9 rounded-full bg-[#E91E8C]/10 flex items-center justify-center text-[#E91E8C] font-bold text-sm shrink-0">
               {ownerName ? ownerName.charAt(0).toUpperCase() : "Y"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-slate-900 dark:text-white">{ownerName || "You"}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium uppercase tracking-wider">Owner</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium uppercase tracking-wider">Owner</span>
               </div>
               <span className="text-xs text-slate-400 dark:text-white/40">{ownerEmail}</span>
             </div>
@@ -1646,7 +1833,7 @@ function CompanyForm({
                 type="checkbox"
                 checked={form.selfIsDirector !== false}
                 onChange={(e) => setForm((f) => ({ ...f, selfIsDirector: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+                className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
               />
               <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
             </label>
@@ -1655,11 +1842,34 @@ function CompanyForm({
                 type="checkbox"
                 checked={form.selfIsShareholder === true}
                 onChange={(e) => setForm((f) => ({ ...f, selfIsShareholder: e.target.checked }))}
-                className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]"
+                className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]"
               />
               <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
             </label>
           </div>
+          {/* Director ID for self (only if director) */}
+          {form.selfIsDirector !== false && (
+            <div className="mt-2">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-slate-600 dark:text-white/70">Director ID (DIN)</label>
+                <span className="text-[10px] text-slate-400 dark:text-white/30 italic">Optional</span>
+              </div>
+              <input
+                type="text"
+                value={form.selfDirectorId || ""}
+                onChange={(e) => setForm((f) => ({ ...f, selfDirectorId: e.target.value.replace(/[^\d\s]/g, "").slice(0, 15) }))}
+                placeholder="e.g. 036 123 456 789"
+                maxLength={18}
+                className={inputClass + " !py-2 text-sm w-64 font-mono tracking-wider mt-1"}
+              />
+              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-1">
+                Australian Director Identification Number.{" "}
+                <a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline font-medium">
+                  Don&apos;t have one? Apply here &rarr;
+                </a>
+              </p>
+            </div>
+          )}
           {/* Share count for self (only if shareholder) */}
           {form.selfIsShareholder && (
             <div className="flex items-center gap-2 mt-2">
@@ -1705,14 +1915,23 @@ function CompanyForm({
                   </div>
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={editForm.isDirector} onChange={(e) => setEditForm((f) => ({ ...f, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
+                      <input type="checkbox" checked={editForm.isDirector} onChange={(e) => setEditForm((f) => ({ ...f, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
                       <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={editForm.isShareholder} onChange={(e) => setEditForm((f) => ({ ...f, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
+                      <input type="checkbox" checked={editForm.isShareholder} onChange={(e) => setEditForm((f) => ({ ...f, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
                       <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
                     </label>
                   </div>
+                  {editForm.isDirector && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic font-normal">Optional</span></label>
+                      <input type="text" value={editForm.directorId} onChange={(e) => setEditForm((f) => ({ ...f, directorId: e.target.value.replace(/[^\d\s]/g, "").slice(0, 15) }))} placeholder="e.g. 036 123 456 789" maxLength={18} className={inputClass + " !py-2.5 text-sm w-56 font-mono tracking-wider"} />
+                      <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">
+                        <a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline">Don&apos;t have one? Apply here &rarr;</a>
+                      </p>
+                    </div>
+                  )}
                   {editForm.isShareholder && (
                     <div>
                       <label className="block text-xs font-medium text-slate-600 dark:text-white/70 mb-1">Number of Shares</label>
@@ -1734,6 +1953,7 @@ function CompanyForm({
                       <span className="font-medium text-sm text-slate-900 dark:text-white">{p.name || p.email}</span>
                       {p.isDirector && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">Director</span>}
                       {p.isShareholder && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">Shareholder{p.shareCount ? ` (${p.shareCount} shares)` : ""}</span>}
+                      {p.isDirector && p.directorId && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-mono">DIN: {p.directorId}</span>}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-slate-400 dark:text-white/40">{p.email}</span>
@@ -1837,15 +2057,29 @@ function CompanyForm({
               <label className="block text-xs font-medium text-slate-600 dark:text-white/70 mb-2">Role *</label>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={newDirector.isDirector} onChange={(e) => setNewDirector((d) => ({ ...d, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
+                  <input type="checkbox" checked={newDirector.isDirector} onChange={(e) => setNewDirector((d) => ({ ...d, isDirector: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
                   <span className="text-sm text-slate-700 dark:text-white/80">Director</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={newDirector.isShareholder} onChange={(e) => setNewDirector((d) => ({ ...d, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#0891b2] focus:ring-[#0891b2]" />
+                  <input type="checkbox" checked={newDirector.isShareholder} onChange={(e) => setNewDirector((d) => ({ ...d, isShareholder: e.target.checked }))} className="w-4 h-4 rounded border-slate-300 text-[#E91E8C] focus:ring-[#E91E8C]" />
                   <span className="text-sm text-slate-700 dark:text-white/80">Shareholder</span>
                 </label>
               </div>
             </div>
+
+            {/* Director ID (only if director) */}
+            {newDirector.isDirector && (
+              <div>
+                <label className="block text-xs font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic font-normal">Optional</span></label>
+                <input type="text" value={newDirector.directorId} onChange={(e) => setNewDirector((d) => ({ ...d, directorId: e.target.value.replace(/[^\d\s]/g, "").slice(0, 15) }))} placeholder="e.g. 036 123 456 789" maxLength={18} className={inputClass + " !py-2.5 text-sm w-56 font-mono tracking-wider"} />
+                <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">
+                  Australian Director Identification Number.{" "}
+                  <a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline font-medium">
+                    Don&apos;t have one? Apply here &rarr;
+                  </a>
+                </p>
+              </div>
+            )}
 
             {/* Share count (only if shareholder) */}
             {newDirector.isShareholder && (
@@ -1856,7 +2090,7 @@ function CompanyForm({
             )}
 
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddDirector} disabled={addingDirector} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
+              <button onClick={handleAddDirector} disabled={addingDirector} className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
                 {addingDirector ? "Sending Invitation..." : emailStatus?.exists ? "Send Invitation" : "Send Registration Invite"}
               </button>
               <button onClick={() => { setShowAddDirector(false); setDirectorError(""); setEmailStatus(null); }} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">Cancel</button>
@@ -1865,7 +2099,7 @@ function CompanyForm({
         ) : (
           <button
             onClick={() => { setShowAddDirector(true); setDirectorError(""); setDirectorSuccess(""); }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             Add Director / Shareholder
@@ -1881,440 +2115,1204 @@ function CompanyForm({
   );
 }
 
-// Trust Profile Form with Partner (Trustees & Beneficiaries) Invitation System
+// ─── Trust detail form sub-components & TrustForm ────────────────────────────
+const TR_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"] as const;
+const trIn = "w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/50 focus:border-[#E91E8C] transition-colors";
+const trLbl = "block text-sm font-medium text-slate-700 dark:text-white/80 mb-2";
+
+interface TrAddr { street: string; suburb: string; state: string; postcode: string; country: string; }
+function emptyA(): TrAddr { return { street: "", suburb: "", state: "", postcode: "", country: "Australia" }; }
+
+// Address sub-component for Trust forms
+function TrAddrFields({ value, onChange, label }: { value: TrAddr; onChange: (a: TrAddr) => void; label?: string }) {
+  const p = label ? `${label} ` : "";
+  return (
+    <div className="grid gap-3">
+      <div><label className={trLbl}>{p}Street Address <span className="text-red-500">*</span></label><input className={trIn} placeholder="123 Main Street" value={value.street} onChange={(e) => onChange({ ...value, street: e.target.value })} /></div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div><label className={trLbl}>{p}Suburb <span className="text-red-500">*</span></label><input className={trIn} placeholder="Melbourne" value={value.suburb} onChange={(e) => onChange({ ...value, suburb: e.target.value })} /></div>
+        <div><label className={trLbl}>{p}State <span className="text-red-500">*</span></label><select className={trIn} value={value.state} onChange={(e) => onChange({ ...value, state: e.target.value })}><option value="">Select</option>{TR_STATES.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
+        <div><label className={trLbl}>{p}Postcode <span className="text-red-500">*</span></label><input className={trIn} placeholder="3000" maxLength={4} value={value.postcode} onChange={(e) => onChange({ ...value, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) })} /></div>
+      </div>
+    </div>
+  );
+}
+
+// Collapsible card
+function TrCard({ title, idx, open: defOpen, onRemove, children }: { title: string; idx: number; open?: boolean; onRemove?: () => void; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defOpen ?? true);
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden">
+      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-5 py-3.5 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+        <span className="flex items-center gap-3"><span className="w-7 h-7 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] text-xs font-bold flex items-center justify-center">{idx + 1}</span><span className="font-medium text-slate-900 dark:text-white text-sm">{title}</span></span>
+        <span className="flex items-center gap-2">
+          {onRemove && <span role="button" onClick={(e) => { e.stopPropagation(); onRemove(); }} className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20">Remove</span>}
+          <svg className={`w-5 h-5 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+        </span>
+      </button>
+      {open && <div className="p-5 space-y-4">{children}</div>}
+    </div>
+  );
+}
+
+// ── Generic Trust People Invite Section ──────────────────────────────────────
+interface TrustPartnerItem {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  directorId?: string;
+  beneficiaryPercent?: number;
+  status: string;
+  fullName?: string;
+  detailsFilledAt?: string;
+  user?: { id: string; name: string; email: string } | null;
+  // Minor fields
+  isMinor?: boolean;
+  parentName?: string;
+  parentRelationship?: string;
+  // Company unit holder fields
+  partnerType?: string;
+  parentPartnerId?: string;
+  companyName?: string;
+  companyTfn?: string;
+  companyAbn?: string;
+  companyAddress?: string;
+  companySuburb?: string;
+  companyState?: string;
+  companyPostcode?: string;
+}
+
+const INVITE_STATUS_BADGE: Record<string, string> = {
+  PENDING: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+  APPROVED: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+  REJECTED: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+};
+
+/**
+ * Reusable invite section — used for Directors, Trustee (Individual),
+ * Beneficiaries, and Unit Holders. Filters partners by role.
+ * Supports adding minors when allowMinors=true.
+ */
+function TrustInviteBlock({
+  accountId,
+  title,
+  subtitle,
+  buttonLabel,
+  defaultRole,
+  roleFilter,
+  allPartners,
+  onRefresh,
+  allowMinors = false,
+}: {
+  accountId: string;
+  title: string;
+  subtitle: string;
+  buttonLabel: string;
+  defaultRole: string;
+  roleFilter: string[];
+  allPartners: TrustPartnerItem[];
+  onRefresh: () => void;
+  allowMinors?: boolean;
+}) {
+  const [showAdd, setShowAdd] = useState<"adult" | "minor" | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newDirId, setNewDirId] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  // Minor fields
+  const [minorDob, setMinorDob] = useState("");
+  const [minorStreet, setMinorStreet] = useState("");
+  const [minorSuburb, setMinorSuburb] = useState("");
+  const [minorState, setMinorState] = useState("");
+  const [minorPostcode, setMinorPostcode] = useState("");
+  const [minorParentName, setMinorParentName] = useState("");
+  const [minorParentRel, setMinorParentRel] = useState("");
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [locallyRemovedIds, setLocallyRemovedIds] = useState<string[]>([]);
+
+  const AU_S = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
+
+  const filtered = allPartners.filter((p) => roleFilter.includes(p.role || "") && !locallyRemovedIds.includes(p.id));
+
+  const isDirectorRole = defaultRole.toLowerCase().includes("director");
+
+  function resetForm() {
+    setNewName(""); setNewEmail(""); setNewDirId(""); setShowAdd(null);
+    setMinorDob(""); setMinorStreet(""); setMinorSuburb(""); setMinorState(""); setMinorPostcode("");
+    setMinorParentName(""); setMinorParentRel("");
+  }
+
+  async function handleAdd() {
+    if (showAdd === "minor") {
+      if (!newName.trim()) { setError("Name is required"); return; }
+      if (!minorStreet.trim()) { setError("Address is required for a minor"); return; }
+      setAdding(true); setError(""); setSuccess("");
+      try {
+        await apiPost("/trust-partners", {
+          accountId, email: "", name: newName, role: defaultRole, isMinor: true,
+          dateOfBirth: minorDob || undefined,
+          streetAddress: minorStreet, suburb: minorSuburb, state: minorState, postcode: minorPostcode,
+          parentName: minorParentName || undefined, parentRelationship: minorParentRel || undefined,
+        });
+        setSuccess(`Minor "${newName}" added`);
+        resetForm(); onRefresh();
+      } catch (e) { setError(e instanceof Error ? e.message : "Failed to add minor"); }
+      finally { setAdding(false); }
+    } else {
+      if (!newEmail.includes("@")) { setError("Enter a valid email"); return; }
+      setAdding(true); setError(""); setSuccess("");
+      try {
+        await apiPost("/trust-partners", { accountId, email: newEmail, name: newName || undefined, role: defaultRole, directorId: newDirId || undefined });
+        setSuccess(`Invitation sent to ${newEmail}`);
+        resetForm(); onRefresh();
+      } catch (e) { setError(e instanceof Error ? e.message : "Failed to send invite"); }
+      finally { setAdding(false); }
+    }
+  }
+
+  async function handleRemove(id: string) {
+    if (!confirm("Remove this person?")) return;
+    setRemovingId(id);
+    try {
+      await apiDelete(`/trust-partners/${id}`);
+      // Optimistically hide item so UI updates immediately even if refresh is delayed.
+      setLocallyRemovedIds((prev) => [...prev, id]);
+      setSuccess("Entry removed successfully");
+      await onRefresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to remove");
+    } finally {
+      setRemovingId(null);
+    }
+  }
+
+  const [reminding, setReminding] = useState<string | null>(null);
+
+  async function handleResend(id: string) {
+    try { await apiPost(`/trust-partners/${id}/resend`, {}); setSuccess("Invitation resent"); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed to resend"); }
+  }
+
+  async function handleRemind(id: string) {
+    setReminding(id); setError(""); setSuccess("");
+    try {
+      await apiPost(`/trust-partners/${id}/remind`, {});
+      setSuccess("Reminder email sent successfully");
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to send reminder"); }
+    finally { setReminding(null); }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">{title}</h3>
+          <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">{subtitle}</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setShowAdd("adult")} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#E91E8C] text-white text-xs font-medium hover:bg-[#c4177a] transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            {allowMinors ? "Add Adult" : buttonLabel}
+          </button>
+          {allowMinors && (
+            <button type="button" onClick={() => setShowAdd("minor")} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition-colors">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              Add Minor
+            </button>
+          )}
+        </div>
+      </div>
+
+      {error && <div className="mb-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"><p className="text-xs text-red-600 dark:text-red-400">{error}</p></div>}
+      {success && <div className="mb-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"><p className="text-xs text-green-600 dark:text-green-400">{success}</p></div>}
+
+      {/* Adult add form */}
+      {showAdd === "adult" && (
+        <div className="mb-3 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={trLbl}>Name <span className="text-red-500">*</span></label>
+              <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Full name" className={trIn} />
+            </div>
+            <div>
+              <label className={trLbl}>Email <span className="text-red-500">*</span></label>
+              <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="name@example.com" className={trIn} />
+            </div>
+          </div>
+          {isDirectorRole && (
+            <div>
+              <label className={trLbl}>Director ID (DIN) <span className="text-[10px] text-slate-400 italic font-normal">Optional</span></label>
+              <input type="text" value={newDirId} onChange={(e) => setNewDirId(e.target.value.replace(/[^\d\s]/g, "").slice(0, 15))} placeholder="e.g. 036 123 456 789" maxLength={18} className={trIn + " font-mono tracking-wider w-56"} />
+              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">
+                Australian Director Identification Number.{" "}
+                <a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline font-medium">
+                  Don&apos;t have one? Apply here &rarr;
+                </a>
+              </p>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button type="button" onClick={handleAdd} disabled={adding || !newEmail || !newName} className="px-4 py-2 rounded-lg bg-[#E91E8C] text-white text-xs font-medium hover:bg-[#c4177a] disabled:opacity-50">{adding ? "Sending..." : "Send Invitation"}</button>
+            <button type="button" onClick={resetForm} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-xs">Cancel</button>
+          </div>
+          <p className="text-xs text-slate-400 dark:text-white/40">If already registered, they get an in-app invite. Otherwise, an email is sent to register first.</p>
+        </div>
+      )}
+
+      {/* Minor add form */}
+      {showAdd === "minor" && (
+        <div className="mb-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">Minor (under 18)</span>
+            <p className="text-xs text-slate-500 dark:text-white/50">No TFN needed — you fill their details directly</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={trLbl}>Full Name <span className="text-red-500">*</span></label>
+              <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Minor's full name" className={trIn} />
+            </div>
+            <div>
+              <label className={trLbl}>Date of Birth</label>
+              <input type="date" value={minorDob} onChange={(e) => setMinorDob(e.target.value)} className={trIn} />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className={trLbl}>Street Address <span className="text-red-500">*</span></label>
+              <input type="text" value={minorStreet} onChange={(e) => setMinorStreet(e.target.value)} placeholder="123 Main St" className={trIn} />
+            </div>
+            <div>
+              <label className={trLbl}>Suburb</label>
+              <input type="text" value={minorSuburb} onChange={(e) => setMinorSuburb(e.target.value)} placeholder="Sydney" className={trIn} />
+            </div>
+            <div>
+              <label className={trLbl}>State</label>
+              <select value={minorState} onChange={(e) => setMinorState(e.target.value)} className={trIn}>
+                <option value="">Select</option>
+                {AU_S.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={trLbl}>Postcode</label>
+              <input type="text" value={minorPostcode} onChange={(e) => setMinorPostcode(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="2000" maxLength={4} className={trIn} />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={trLbl}>Parent/Guardian Name</label>
+              <input type="text" value={minorParentName} onChange={(e) => setMinorParentName(e.target.value)} placeholder="Parent name" className={trIn} />
+            </div>
+            <div>
+              <label className={trLbl}>Relationship</label>
+              <select value={minorParentRel} onChange={(e) => setMinorParentRel(e.target.value)} className={trIn}>
+                <option value="">Select</option>
+                <option value="Father">Father</option>
+                <option value="Mother">Mother</option>
+                <option value="Guardian">Guardian</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={handleAdd} disabled={adding || !newName} className="px-4 py-2 rounded-lg bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 disabled:opacity-50">{adding ? "Adding..." : "Add Minor"}</button>
+            <button type="button" onClick={resetForm} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-xs">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
+        <div className="text-center py-5 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
+          <p className="text-xs text-slate-500 dark:text-white/50">No one added yet. Click &ldquo;{allowMinors ? "Add Adult" : buttonLabel}&rdquo; to add.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((p) => (
+            <div key={p.id} className="flex items-center justify-between p-3 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-medium text-xs ${p.isMinor ? "bg-gradient-to-br from-amber-400 to-amber-600" : "bg-gradient-to-br from-[#E91E8C] to-[#c4177a]"}`}>{(p.name || p.email).charAt(0).toUpperCase()}</div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-medium text-slate-900 dark:text-white text-sm">{p.name || p.email}</p>
+                    {p.isMinor && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 font-medium">Minor</span>}
+                    {!p.isMinor && <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${INVITE_STATUS_BADGE[p.status] || "bg-slate-100 text-slate-500"}`}>{p.status}</span>}
+                    {p.detailsFilledAt && <span className="text-[10px] text-green-600 dark:text-green-400 flex items-center gap-0.5"><svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Details filled</span>}
+                    {!p.isMinor && p.status === "APPROVED" && !p.detailsFilledAt && <span className="text-[10px] text-amber-500">Awaiting details</span>}
+                  </div>
+                    <p className="text-xs text-slate-500 dark:text-white/50">
+                      {p.isMinor ? `Minor${p.parentName ? ` — Parent: ${p.parentName}` : ""}` : p.email} &middot; {p.role}{p.directorId ? ` · DIN: ${p.directorId}` : ""}
+                    </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {!p.isMinor && !p.detailsFilledAt && p.partnerType !== "COMPANY" && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemind(p.id)}
+                    disabled={reminding === p.id}
+                    className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline disabled:opacity-50"
+                    title="Send reminder email"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    {reminding === p.id ? "Sending..." : "Reminder"}
+                  </button>
+                )}
+                {p.status === "PENDING" && !p.isMinor && <button type="button" onClick={() => handleResend(p.id)} className="text-xs text-[#E91E8C] hover:underline">Resend</button>}
+                <button type="button" onClick={() => handleRemove(p.id)} disabled={removingId === p.id} className="text-xs text-red-500 hover:underline disabled:opacity-50">{removingId === p.id ? "Removing..." : "Remove"}</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Unit Holder Section — supports both Individual and Company unit holders.
+ * Company unit holders display company details + their directors (invited via TrustInviteBlock).
+ */
+function UnitHolderSection({ accountId, allPartners, onRefresh }: { accountId: string; allPartners: TrustPartnerItem[]; onRefresh: () => void }) {
+  const [showAddCompany, setShowAddCompany] = useState(false);
+  const [compForm, setCompForm] = useState({ name: "", tfn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" as "COMPANY" | "TRUSTEE_COMPANY" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+
+  const fmtTfn = (raw: string) => { const d = raw.replace(/\D/g, "").slice(0, 9); if (d.length <= 3) return d; if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`; return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`; };
+
+  const individualUHs = allPartners.filter((p) => (p.role === "Unit Holder") && (p.partnerType || "INDIVIDUAL") === "INDIVIDUAL");
+  const companyUHs = allPartners.filter((p) => (p.role === "Unit Holder") && p.partnerType === "COMPANY");
+
+  function getDirectors(companyId: string) {
+    return allPartners.filter((p) => p.parentPartnerId === companyId && p.role === "UH Director");
+  }
+  function getTrustees(companyId: string) {
+    return allPartners.filter((p) => p.parentPartnerId === companyId && p.role === "UH Trustee");
+  }
+
+  async function handleAddCompany() {
+    if (!compForm.name.trim()) { setError("Company name is required"); return; }
+    const cTfn = compForm.tfn.replace(/\s/g, "");
+    if (!cTfn) { setError("Company TFN is required"); return; }
+    if (!/^\d{8,9}$/.test(cTfn)) { setError("Company TFN must be 8 or 9 digits"); return; }
+    if (!compForm.street.trim()) { setError("Registered address is required"); return; }
+    setSaving(true); setError(""); setSuccess("");
+    try {
+      await apiPost("/trust-partners", {
+        accountId,
+        email: `company-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@placeholder.internal`,
+        name: compForm.name, role: "Unit Holder", partnerType: "COMPANY",
+        companyName: compForm.name, companyTfn: compForm.tfn || undefined, companyAbn: compForm.abn || undefined,
+        companyAddress: compForm.street, companySuburb: compForm.suburb, companyState: compForm.state, companyPostcode: compForm.postcode,
+      });
+      setSuccess(`Company "${compForm.name}" added`);
+      setCompForm({ name: "", tfn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" });
+      setShowAddCompany(false); onRefresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to add company"); }
+    finally { setSaving(false); }
+  }
+
+  async function handleRemoveCompany(id: string) {
+    if (!confirm("Remove this company and all its directors/trustees?")) return;
+    try { await apiDelete(`/trust-partners/${id}`); onRefresh(); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed to remove"); }
+  }
+
+  // Add director/trustee to a company
+  const [addPersonFor, setAddPersonFor] = useState<{ companyId: string; personType: "director" | "trustee" } | null>(null);
+  const [personName, setPersonName] = useState("");
+  const [personEmail, setPersonEmail] = useState("");
+  const [personDirId, setPersonDirId] = useState("");
+  const [addingPerson, setAddingPerson] = useState(false);
+
+  async function handleAddPerson(companyId: string, personType: "director" | "trustee") {
+    if (!personEmail.includes("@")) { setError("Enter a valid email"); return; }
+    setAddingPerson(true); setError("");
+    try {
+      await apiPost("/trust-partners", {
+        accountId, email: personEmail, name: personName || undefined,
+        role: personType === "director" ? "UH Director" : "UH Trustee",
+        parentPartnerId: companyId,
+        directorId: personDirId || undefined,
+      });
+      setSuccess(`${personType === "director" ? "Director" : "Trustee"} invite sent to ${personEmail}`);
+      setPersonName(""); setPersonEmail(""); setPersonDirId(""); setAddPersonFor(null); onRefresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to invite"); }
+    finally { setAddingPerson(false); }
+  }
+
+  const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
+
+  function renderPersonList(people: TrustPartnerItem[], pType: string) {
+    if (people.length === 0) {
+      return (<div className="text-center py-3 rounded-lg border border-dashed border-slate-200 dark:border-white/10"><p className="text-[11px] text-slate-400 dark:text-white/40">No {pType}s invited yet</p></div>);
+    }
+  return (
+      <div className="space-y-2">
+        {people.map((d) => (
+          <div key={d.id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${pType === "trustee" ? "bg-indigo-500" : "bg-purple-500"}`}>{(d.name || d.email).charAt(0).toUpperCase()}</div>
+        <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{d.name || d.email}</p>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${INVITE_STATUS_BADGE[d.status] || "bg-slate-100 text-slate-500"}`}>{d.status}</span>
+                  {d.detailsFilledAt && <span className="text-[10px] text-green-600">Details filled</span>}
+                  {d.directorId && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-mono">DIN: {d.directorId}</span>}
+        </div>
+                <p className="text-[11px] text-slate-500 dark:text-white/50">{d.email}</p>
+        </div>
+              </div>
+            <div className="flex items-center gap-1.5">
+              {!d.detailsFilledAt && (
+                <button type="button" onClick={() => { apiPost(`/trust-partners/${d.id}/remind`, {}).then(() => setSuccess("Reminder sent")).catch(() => setError("Failed")); }} className="text-[11px] text-amber-600 hover:underline">Reminder</button>
+              )}
+              {d.status === "PENDING" && <button type="button" onClick={() => { apiPost(`/trust-partners/${d.id}/resend`, {}).then(() => setSuccess("Resent")).catch(() => {}); }} className="text-[11px] text-purple-600 hover:underline">Resend</button>}
+              <button type="button" onClick={() => { if (confirm("Remove?")) { apiDelete(`/trust-partners/${d.id}`).then(onRefresh); } }} className="text-[11px] text-red-500 hover:underline">Remove</button>
+        </div>
+        </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <TrustInviteBlock accountId={accountId} title="Individual Unit Holders" subtitle="Adults fill their own details after accepting. For minors, you fill the details directly." buttonLabel="Invite Individual" defaultRole="Unit Holder" roleFilter={["Unit Holder"]} allPartners={individualUHs} onRefresh={onRefresh} allowMinors={true} />
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">Company Unit Holders</h3>
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">Companies holding units — choose Company or Trustee Company</p>
+          </div>
+          <button type="button" onClick={() => setShowAddCompany(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Add Company
+          </button>
+      </div>
+
+        {error && <div className="mb-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"><p className="text-xs text-red-600 dark:text-red-400">{error}</p></div>}
+        {success && <div className="mb-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"><p className="text-xs text-green-600 dark:text-green-400">{success}</p></div>}
+
+        {showAddCompany && (
+          <div className="mb-4 p-5 rounded-xl bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 space-y-4">
+            <h4 className="text-sm font-semibold text-purple-800 dark:text-purple-300">New Company Unit Holder</h4>
+        <div>
+              <label className={trLbl}>Company Type <span className="text-red-500">*</span></label>
+              <div className="grid grid-cols-2 gap-3">
+                {(["COMPANY", "TRUSTEE_COMPANY"] as const).map((t) => (
+                  <button key={t} type="button" onClick={() => setCompForm({ ...compForm, companyType: t })} className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${compForm.companyType === t ? "border-[#E91E8C] bg-[#E91E8C]/5 text-[#E91E8C]" : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:border-slate-300"}`}>
+                    {t === "COMPANY" ? "Company" : "Trustee Company"}
+                  </button>
+                ))}
+        </div>
+              <p className="text-[11px] text-slate-400 dark:text-white/40 mt-1">
+                {compForm.companyType === "TRUSTEE_COMPANY" ? "Trustee Company — add trustees and directors after creation" : "Company — add directors only after creation"}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+                <label className={trLbl}>{compForm.companyType === "TRUSTEE_COMPANY" ? "Trust Name" : "Company Name"} <span className="text-red-500">*</span></label>
+                <input type="text" className={trIn} placeholder={compForm.companyType === "TRUSTEE_COMPANY" ? "Smith Family Trust" : "ABC Pty Ltd"} value={compForm.name} onChange={(e) => setCompForm({ ...compForm, name: e.target.value })} />
+        </div>
+        <div>
+                <label className={trLbl}>Company TFN <span className="text-red-500">*</span> <span className="ml-1 text-xs text-amber-500 font-normal">Encrypted</span></label>
+                <input className={trIn + " font-mono tracking-wider"} placeholder="XXX XXX XXX" maxLength={11} value={fmtTfn(compForm.tfn)} onChange={(e) => setCompForm({ ...compForm, tfn: e.target.value.replace(/\D/g, "").slice(0, 9) })} />
+        </div>
+              <div>
+                <label className={trLbl}>Company ABN</label>
+                <input className={trIn + " font-mono tracking-wider"} placeholder="XX XXX XXX XXX" maxLength={14} value={compForm.abn} onChange={(e) => setCompForm({ ...compForm, abn: e.target.value })} />
+      </div>
+            </div>
+            <div className="space-y-3">
+              <h5 className="text-xs font-semibold text-slate-500 dark:text-white/50 uppercase">Registered Address</h5>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2"><label className={trLbl}>Street <span className="text-red-500">*</span></label><input type="text" className={trIn} placeholder="123 Main St" value={compForm.street} onChange={(e) => setCompForm({ ...compForm, street: e.target.value })} /></div>
+                <div><label className={trLbl}>Suburb</label><input type="text" className={trIn} placeholder="Sydney" value={compForm.suburb} onChange={(e) => setCompForm({ ...compForm, suburb: e.target.value })} /></div>
+                <div><label className={trLbl}>State</label><select className={trIn} value={compForm.state} onChange={(e) => setCompForm({ ...compForm, state: e.target.value })}><option value="">Select</option>{AU_STATES.map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
+                <div><label className={trLbl}>Postcode</label><input type="text" className={trIn} placeholder="2000" maxLength={4} value={compForm.postcode} onChange={(e) => setCompForm({ ...compForm, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) })} /></div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleAddCompany} disabled={saving || !compForm.name} className="px-4 py-2 rounded-lg bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 disabled:opacity-50">{saving ? "Saving..." : "Add Company"}</button>
+              <button type="button" onClick={() => { setShowAddCompany(false); setCompForm({ name: "", tfn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" }); }} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-xs">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {companyUHs.length === 0 && !showAddCompany ? (
+          <div className="text-center py-5 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
+            <p className="text-xs text-slate-500 dark:text-white/50">No company unit holders yet. Click &ldquo;Add Company&rdquo; to add.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {companyUHs.map((c) => {
+              const dirs = getDirectors(c.id);
+              const trustees = getTrustees(c.id);
+              const hasTrustees = trustees.length > 0;
+              const isExpanded = expandedCompany === c.id;
+              return (
+                <div key={c.id} className="rounded-xl bg-white dark:bg-white/5 border border-purple-200 dark:border-purple-800/50 overflow-hidden">
+                  <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-colors" onClick={() => setExpandedCompany(isExpanded ? null : c.id)}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm">{(c.companyName || "C").charAt(0).toUpperCase()}</div>
+          <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-900 dark:text-white text-sm">{c.companyName || c.name}</p>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${hasTrustees ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"}`}>
+                            {hasTrustees ? "Trustee Company" : "Company"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-white/50">
+                          {c.companyAbn ? `ABN: ${c.companyAbn}` : "No ABN"} &middot; {dirs.length} director{dirs.length !== 1 ? "s" : ""}{hasTrustees ? ` · ${trustees.length} trustee${trustees.length !== 1 ? "s" : ""}` : ""}
+            </p>
+          </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveCompany(c.id); }} className="text-xs text-red-500 hover:underline">Remove</button>
+                      <svg className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t border-purple-100 dark:border-purple-800/30 space-y-4">
+                      <div className="pt-3 grid sm:grid-cols-2 gap-3">
+                        <div><p className="text-xs text-slate-400">{hasTrustees ? "Trust Name" : "Company Name"}</p><p className="text-sm text-slate-900 dark:text-white font-medium">{c.companyName || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Company TFN</p><p className="text-sm text-slate-900 dark:text-white font-mono">{c.companyTfn || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Company ABN</p><p className="text-sm text-slate-900 dark:text-white font-mono">{c.companyAbn || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Registered Address</p><p className="text-sm text-slate-900 dark:text-white">{[c.companyAddress, c.companySuburb, c.companyState, c.companyPostcode].filter(Boolean).join(", ") || "—"}</p></div>
+                      </div>
+
+                      {/* Trustees Section */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Trustees</h4>
+                            <p className="text-[11px] text-slate-400 dark:text-white/40">Trustees of this company</p>
+                          </div>
+                          <button type="button" onClick={() => setAddPersonFor(addPersonFor?.companyId === c.id && addPersonFor.personType === "trustee" ? null : { companyId: c.id, personType: "trustee" })} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-[11px] font-medium hover:bg-indigo-700">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            Invite Trustee
+          </button>
+                        </div>
+                        {addPersonFor?.companyId === c.id && addPersonFor.personType === "trustee" && (
+                          <div className="mb-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800 space-y-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <input type="text" className={trIn} placeholder="Trustee name" value={personName} onChange={(e) => setPersonName(e.target.value)} />
+                              <input type="email" className={trIn} placeholder="trustee@example.com" value={personEmail} onChange={(e) => setPersonEmail(e.target.value)} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic">Optional</span></label>
+                              <input type="text" className={trIn + " font-mono tracking-wider w-48"} placeholder="e.g. 036 123 456 789" maxLength={18} value={personDirId} onChange={(e) => setPersonDirId(e.target.value.replace(/[^\d\s]/g, "").slice(0, 15))} />
+                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5"><a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline">Don&apos;t have one? Apply here &rarr;</a></p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => handleAddPerson(c.id, "trustee")} disabled={addingPerson || !personEmail} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium hover:bg-indigo-700 disabled:opacity-50">{addingPerson ? "Sending..." : "Send Invite"}</button>
+                              <button type="button" onClick={() => { setAddPersonFor(null); setPersonName(""); setPersonEmail(""); setPersonDirId(""); }} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-[11px]">Cancel</button>
+                            </div>
+                          </div>
+                        )}
+                        {renderPersonList(trustees, "trustee")}
+        </div>
+
+                      {/* Directors Section */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="text-xs font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">Directors</h4>
+                            <p className="text-[11px] text-slate-400 dark:text-white/40">Directors of this company (will receive invitation)</p>
+                          </div>
+                          <button type="button" onClick={() => setAddPersonFor(addPersonFor?.companyId === c.id && addPersonFor.personType === "director" ? null : { companyId: c.id, personType: "director" })} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 text-white text-[11px] font-medium hover:bg-purple-700">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            Invite Director
+                          </button>
+                        </div>
+                        {addPersonFor?.companyId === c.id && addPersonFor.personType === "director" && (
+                          <div className="mb-3 p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <input type="text" className={trIn} placeholder="Director name" value={personName} onChange={(e) => setPersonName(e.target.value)} />
+                              <input type="email" className={trIn} placeholder="director@example.com" value={personEmail} onChange={(e) => setPersonEmail(e.target.value)} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic">Optional</span></label>
+                              <input type="text" className={trIn + " font-mono tracking-wider w-48"} placeholder="e.g. 036 123 456 789" maxLength={18} value={personDirId} onChange={(e) => setPersonDirId(e.target.value.replace(/[^\d\s]/g, "").slice(0, 15))} />
+                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5"><a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline">Don&apos;t have one? Apply here &rarr;</a></p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => handleAddPerson(c.id, "director")} disabled={addingPerson || !personEmail} className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-[11px] font-medium hover:bg-purple-700 disabled:opacity-50">{addingPerson ? "Sending..." : "Send Invite"}</button>
+                              <button type="button" onClick={() => { setAddPersonFor(null); setPersonName(""); setPersonEmail(""); setPersonDirId(""); }} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-[11px]">Cancel</button>
+                            </div>
+          </div>
+        )}
+                        {renderPersonList(dirs, "director")}
+                      </div>
+          </div>
+        )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Beneficiary Section — for Discretionary Trusts.
+ * Individual Beneficiaries (adults + minors) + Company Beneficiaries (Company / Trustee Company).
+ */
+function BeneficiarySection({ accountId, allPartners, onRefresh }: { accountId: string; allPartners: TrustPartnerItem[]; onRefresh: () => void }) {
+  const [showAddCompany, setShowAddCompany] = useState(false);
+  const [cbForm, setCbForm] = useState({ name: "", acn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" as "COMPANY" | "TRUSTEE_COMPANY" });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+
+  const AU_S = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
+
+  // Individual beneficiaries (non-company)
+  const individualBens = allPartners.filter((p) => (p.role === "Beneficiary") && (p.partnerType || "INDIVIDUAL") === "INDIVIDUAL");
+  // Company beneficiaries
+  const companyBens = allPartners.filter((p) => (p.role === "Beneficiary") && p.partnerType === "COMPANY");
+
+  function getDirectors(companyId: string) {
+    return allPartners.filter((p) => p.parentPartnerId === companyId && p.role === "Ben Director");
+  }
+  function getTrustees(companyId: string) {
+    return allPartners.filter((p) => p.parentPartnerId === companyId && p.role === "Ben Trustee");
+  }
+
+  async function handleAddCompany() {
+    if (!cbForm.name.trim()) { setError("Company name is required"); return; }
+    const acn = cbForm.acn.replace(/\s/g, "");
+    if (!acn) { setError("Company ACN is required"); return; }
+    if (!cbForm.street.trim()) { setError("Registered address is required"); return; }
+    setSaving(true); setError(""); setSuccess("");
+    try {
+      await apiPost("/trust-partners", {
+        accountId,
+        email: `company-ben-${Date.now()}-${Math.random().toString(36).slice(2, 6)}@placeholder.internal`,
+        name: cbForm.name,
+        role: "Beneficiary",
+        partnerType: "COMPANY",
+        companyName: cbForm.name,
+        companyTfn: cbForm.acn || undefined,
+        companyAbn: cbForm.abn || undefined,
+        companyAddress: cbForm.street,
+        companySuburb: cbForm.suburb,
+        companyState: cbForm.state,
+        companyPostcode: cbForm.postcode,
+      });
+      setSuccess(`Company "${cbForm.name}" added as beneficiary`);
+      setCbForm({ name: "", acn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" });
+      setShowAddCompany(false);
+      onRefresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to add company"); }
+    finally { setSaving(false); }
+  }
+
+  async function handleRemoveCompany(id: string) {
+    if (!confirm("Remove this company and all its directors/trustees?")) return;
+    try { await apiDelete(`/trust-partners/${id}`); onRefresh(); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed to remove"); }
+  }
+
+  // Add director/trustee to a company beneficiary
+  const [addPersonFor, setAddPersonFor] = useState<{ companyId: string; personType: "director" | "trustee" } | null>(null);
+  const [personName, setPersonName] = useState("");
+  const [personEmail, setPersonEmail] = useState("");
+  const [personDirId, setPersonDirId] = useState("");
+  const [addingPerson, setAddingPerson] = useState(false);
+
+  async function handleAddPerson(companyId: string, personType: "director" | "trustee") {
+    if (!personEmail.includes("@")) { setError("Enter a valid email"); return; }
+    setAddingPerson(true); setError("");
+    try {
+      await apiPost("/trust-partners", {
+        accountId, email: personEmail, name: personName || undefined,
+        role: personType === "director" ? "Ben Director" : "Ben Trustee",
+        parentPartnerId: companyId,
+        directorId: personDirId || undefined,
+      });
+      setSuccess(`${personType === "director" ? "Director" : "Trustee"} invite sent to ${personEmail}`);
+      setPersonName(""); setPersonEmail(""); setPersonDirId(""); setAddPersonFor(null);
+      onRefresh();
+    } catch (e) { setError(e instanceof Error ? e.message : "Failed to invite"); }
+    finally { setAddingPerson(false); }
+  }
+
+  function renderPersonList(people: TrustPartnerItem[], personType: string) {
+    if (people.length === 0) {
+      return (
+        <div className="text-center py-3 rounded-lg border border-dashed border-slate-200 dark:border-white/10">
+          <p className="text-[11px] text-slate-400 dark:text-white/40">No {personType}s invited yet</p>
+                    </div>
+      );
+    }
+    return (
+      <div className="space-y-2">
+        {people.map((d) => (
+          <div key={d.id} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-white/5 rounded-lg border border-slate-100 dark:border-white/5">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${personType === "trustee" ? "bg-indigo-500" : "bg-purple-500"}`}>{(d.name || d.email).charAt(0).toUpperCase()}</div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{d.name || d.email}</p>
+                  <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${INVITE_STATUS_BADGE[d.status] || "bg-slate-100 text-slate-500"}`}>{d.status}</span>
+                  {d.detailsFilledAt && <span className="text-[10px] text-green-600">Details filled</span>}
+                  {d.directorId && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/50 font-mono">DIN: {d.directorId}</span>}
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-white/50">{d.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5">
+              {!d.detailsFilledAt && (
+                <button type="button" onClick={() => { apiPost(`/trust-partners/${d.id}/remind`, {}).then(() => setSuccess("Reminder sent")).catch(() => setError("Failed")); }} className="text-[11px] text-amber-600 hover:underline">Reminder</button>
+              )}
+              {d.status === "PENDING" && <button type="button" onClick={() => { apiPost(`/trust-partners/${d.id}/resend`, {}).then(() => setSuccess("Resent")).catch(() => {}); }} className="text-[11px] text-purple-600 hover:underline">Resend</button>}
+              <button type="button" onClick={() => { if (confirm("Remove?")) { apiDelete(`/trust-partners/${d.id}`).then(onRefresh); } }} className="text-[11px] text-red-500 hover:underline">Remove</button>
+                </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* ── Individual Beneficiaries ── */}
+      <TrustInviteBlock
+        accountId={accountId}
+        title="Individual Beneficiaries"
+        subtitle="Adults receive an invite to fill their own details. For minors, you fill the details directly."
+        buttonLabel="Invite Beneficiary"
+        defaultRole="Beneficiary"
+        roleFilter={["Beneficiary"]}
+        allPartners={individualBens}
+        onRefresh={onRefresh}
+        allowMinors={true}
+      />
+
+      {/* ── Company Beneficiaries ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">Company Beneficiaries</h3>
+            <p className="text-xs text-slate-400 dark:text-white/40 mt-0.5">Companies that are beneficiaries — choose Company or Trustee Company</p>
+          </div>
+          <button type="button" onClick={() => setShowAddCompany(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#E91E8C] text-white text-xs font-medium hover:bg-[#c4177a] transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            Add Company
+          </button>
+        </div>
+
+        {error && <div className="mb-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"><p className="text-xs text-red-600 dark:text-red-400">{error}</p></div>}
+        {success && <div className="mb-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"><p className="text-xs text-green-600 dark:text-green-400">{success}</p></div>}
+
+        {/* Add Company Form */}
+        {showAddCompany && (
+          <div className="mb-4 p-5 rounded-xl bg-teal-50 dark:bg-teal-900/10 border border-teal-200 dark:border-teal-800 space-y-4">
+            <h4 className="text-sm font-semibold text-teal-800 dark:text-teal-300">New Company Beneficiary</h4>
+            {/* Company Type Selector */}
+            <div>
+              <label className={trLbl}>Company Type <span className="text-red-500">*</span></label>
+              <div className="grid grid-cols-2 gap-3">
+                {(["COMPANY", "TRUSTEE_COMPANY"] as const).map((t) => (
+                  <button key={t} type="button" onClick={() => setCbForm({ ...cbForm, companyType: t })} className={`px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${cbForm.companyType === t ? "border-[#E91E8C] bg-[#E91E8C]/5 text-[#E91E8C]" : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:border-slate-300"}`}>
+                    {t === "COMPANY" ? "Company" : "Trustee Company"}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-400 dark:text-white/40 mt-1">
+                {cbForm.companyType === "TRUSTEE_COMPANY" ? "Trustee Company — add trustees and directors after creation" : "Company — add directors only after creation"}
+              </p>
+              </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className={trLbl}>{cbForm.companyType === "TRUSTEE_COMPANY" ? "Trust Name" : "Company Name"} <span className="text-red-500">*</span></label>
+                <input type="text" className={trIn} placeholder={cbForm.companyType === "TRUSTEE_COMPANY" ? "Smith Family Trust" : "ABC Pty Ltd"} value={cbForm.name} onChange={(e) => setCbForm({ ...cbForm, name: e.target.value })} />
+              </div>
+              <div>
+                <label className={trLbl}>Company ACN <span className="text-red-500">*</span></label>
+                <input className={trIn + " font-mono tracking-wider"} placeholder="XXX XXX XXX" maxLength={11} value={cbForm.acn} onChange={(e) => setCbForm({ ...cbForm, acn: e.target.value.replace(/[^0-9 ]/g, "").slice(0, 11) })} />
+              </div>
+              <div>
+                <label className={trLbl}>Company ABN</label>
+                <input className={trIn + " font-mono tracking-wider"} placeholder="XX XXX XXX XXX" maxLength={14} value={cbForm.abn} onChange={(e) => setCbForm({ ...cbForm, abn: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <h5 className="text-xs font-semibold text-slate-500 dark:text-white/50 uppercase">Registered Address</h5>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <label className={trLbl}>Street <span className="text-red-500">*</span></label>
+                  <input type="text" className={trIn} placeholder="123 Main St" value={cbForm.street} onChange={(e) => setCbForm({ ...cbForm, street: e.target.value })} />
+                </div>
+                <div>
+                  <label className={trLbl}>Suburb</label>
+                  <input type="text" className={trIn} placeholder="Sydney" value={cbForm.suburb} onChange={(e) => setCbForm({ ...cbForm, suburb: e.target.value })} />
+                </div>
+                <div>
+                  <label className={trLbl}>State</label>
+                  <select className={trIn} value={cbForm.state} onChange={(e) => setCbForm({ ...cbForm, state: e.target.value })}>
+                    <option value="">Select</option>
+                    {AU_S.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                  <label className={trLbl}>Postcode</label>
+                  <input type="text" className={trIn} placeholder="2000" maxLength={4} value={cbForm.postcode} onChange={(e) => setCbForm({ ...cbForm, postcode: e.target.value.replace(/\D/g, "").slice(0, 4) })} />
+              </div>
+            </div>
+            </div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleAddCompany} disabled={saving || !cbForm.name} className="px-4 py-2 rounded-lg bg-[#E91E8C] text-white text-xs font-medium hover:bg-[#c4177a] disabled:opacity-50">{saving ? "Saving..." : "Add Company"}</button>
+              <button type="button" onClick={() => { setShowAddCompany(false); setCbForm({ name: "", acn: "", abn: "", street: "", suburb: "", state: "", postcode: "", companyType: "COMPANY" }); }} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-xs">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Company List */}
+        {companyBens.length === 0 && !showAddCompany ? (
+          <div className="text-center py-5 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
+            <p className="text-xs text-slate-500 dark:text-white/50">No company beneficiaries yet. Click &ldquo;Add Company&rdquo; to add.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {companyBens.map((c) => {
+              const dirs = getDirectors(c.id);
+              const trustees = getTrustees(c.id);
+              const hasTrustees = trustees.length > 0;
+              const isExpanded = expandedCompany === c.id;
+              return (
+                <div key={c.id} className="rounded-xl bg-white dark:bg-white/5 border border-teal-200 dark:border-teal-800/50 overflow-hidden">
+                  <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-colors" onClick={() => setExpandedCompany(isExpanded ? null : c.id)}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white font-bold text-sm">{(c.companyName || "C").charAt(0).toUpperCase()}</div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-900 dark:text-white text-sm">{c.companyName || c.name}</p>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${hasTrustees ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"}`}>
+                            {hasTrustees ? "Trustee Company" : "Company"}
+                      </span>
+                    </div>
+                        <p className="text-xs text-slate-500 dark:text-white/50">
+                          {c.companyAbn ? `ABN: ${c.companyAbn}` : "No ABN"} &middot; {dirs.length} director{dirs.length !== 1 ? "s" : ""}{hasTrustees ? ` · ${trustees.length} trustee${trustees.length !== 1 ? "s" : ""}` : ""}
+                        </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveCompany(c.id); }} className="text-xs text-red-500 hover:underline">Remove</button>
+                      <svg className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t border-teal-100 dark:border-teal-800/30 space-y-4">
+                      <div className="pt-3 grid sm:grid-cols-2 gap-3">
+                        <div><p className="text-xs text-slate-400">{hasTrustees ? "Trust Name" : "Company Name"}</p><p className="text-sm text-slate-900 dark:text-white font-medium">{c.companyName || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Company ACN</p><p className="text-sm text-slate-900 dark:text-white font-mono">{c.companyTfn || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Company ABN</p><p className="text-sm text-slate-900 dark:text-white font-mono">{c.companyAbn || "—"}</p></div>
+                        <div><p className="text-xs text-slate-400">Registered Address</p><p className="text-sm text-slate-900 dark:text-white">{[c.companyAddress, c.companySuburb, c.companyState, c.companyPostcode].filter(Boolean).join(", ") || "—"}</p></div>
+                      </div>
+
+                      {/* Trustees Section (for Trustee Companies) */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Trustees</h4>
+                            <p className="text-[11px] text-slate-400 dark:text-white/40">Trustees of this company</p>
+                          </div>
+                          <button type="button" onClick={() => setAddPersonFor(addPersonFor?.companyId === c.id && addPersonFor.personType === "trustee" ? null : { companyId: c.id, personType: "trustee" })} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-[11px] font-medium hover:bg-indigo-700">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            Invite Trustee
+                    </button>
+                        </div>
+                        {addPersonFor?.companyId === c.id && addPersonFor.personType === "trustee" && (
+                          <div className="mb-3 p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800 space-y-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <input type="text" className={trIn} placeholder="Trustee name" value={personName} onChange={(e) => setPersonName(e.target.value)} />
+                              <input type="email" className={trIn} placeholder="trustee@example.com" value={personEmail} onChange={(e) => setPersonEmail(e.target.value)} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic">Optional</span></label>
+                              <input type="text" className={trIn + " font-mono tracking-wider w-48"} placeholder="e.g. 036 123 456 789" maxLength={18} value={personDirId} onChange={(e) => setPersonDirId(e.target.value.replace(/[^\d\s]/g, "").slice(0, 15))} />
+                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5"><a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline">Don&apos;t have one? Apply here &rarr;</a></p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => handleAddPerson(c.id, "trustee")} disabled={addingPerson || !personEmail} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[11px] font-medium hover:bg-indigo-700 disabled:opacity-50">{addingPerson ? "Sending..." : "Send Invite"}</button>
+                              <button type="button" onClick={() => { setAddPersonFor(null); setPersonName(""); setPersonEmail(""); setPersonDirId(""); }} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-[11px]">Cancel</button>
+                            </div>
+                          </div>
+                        )}
+                        {renderPersonList(trustees, "trustee")}
+                      </div>
+
+                      {/* Directors Section */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-white/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <h4 className="text-xs font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">Directors</h4>
+                            <p className="text-[11px] text-slate-400 dark:text-white/40">Directors of this company (will receive invitation)</p>
+                          </div>
+                          <button type="button" onClick={() => setAddPersonFor(addPersonFor?.companyId === c.id && addPersonFor.personType === "director" ? null : { companyId: c.id, personType: "director" })} className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 text-white text-[11px] font-medium hover:bg-purple-700">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            Invite Director
+                    </button>
+                        </div>
+                        {addPersonFor?.companyId === c.id && addPersonFor.personType === "director" && (
+                          <div className="mb-3 p-3 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2">
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <input type="text" className={trIn} placeholder="Director name" value={personName} onChange={(e) => setPersonName(e.target.value)} />
+                              <input type="email" className={trIn} placeholder="director@example.com" value={personEmail} onChange={(e) => setPersonEmail(e.target.value)} />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-medium text-slate-600 dark:text-white/70 mb-1">Director ID (DIN) <span className="text-[10px] text-slate-400 italic">Optional</span></label>
+                              <input type="text" className={trIn + " font-mono tracking-wider w-48"} placeholder="e.g. 036 123 456 789" maxLength={18} value={personDirId} onChange={(e) => setPersonDirId(e.target.value.replace(/[^\d\s]/g, "").slice(0, 15))} />
+                              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5"><a href="https://www.abrs.gov.au/director-identification-number" target="_blank" rel="noopener noreferrer" className="text-[#E91E8C] hover:underline">Don&apos;t have one? Apply here &rarr;</a></p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={() => handleAddPerson(c.id, "director")} disabled={addingPerson || !personEmail} className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-[11px] font-medium hover:bg-purple-700 disabled:opacity-50">{addingPerson ? "Sending..." : "Send Invite"}</button>
+                              <button type="button" onClick={() => { setAddPersonFor(null); setPersonName(""); setPersonEmail(""); setPersonDirId(""); }} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-[11px]">Cancel</button>
+                            </div>
+                          </div>
+                        )}
+                        {renderPersonList(dirs, "director")}
+                </div>
+              </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function fmtTfnInput(raw: string) { const d = raw.replace(/\D/g, "").slice(0, 9); if (d.length <= 3) return d; if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`; return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6)}`; }
+
+/**
+ * Trust Profile Form — Complete Australian CA workflow:
+ *
+ * 1. Trust Info: Name, Type, Trust TFN, Trust ABN
+ * 2. Trustee Selection:
+ *    - Individual → Invite (they fill own details: TFN, DOB, address)
+ *    - Corporate → Company Name, Company TFN, ABN, Address
+ *      + Directors → Invite each (they fill own details)
+ * 3. Beneficiaries (Discretionary) / Unit Holders (Unit) → Invite system
+ *
+ * Everyone invited gets an email:
+ * - If already registered → in-app invite
+ * - If new → email to register, with context (trust name, role, why)
+ */
 function TrustForm({
   form,
   setForm,
   accountId,
 }: {
-  form: Partial<TrustProfile & { trusteeDetails: string; beneficiaries: string }>;
-  setForm: React.Dispatch<React.SetStateAction<Partial<TrustProfile & { trusteeDetails: string; beneficiaries: string }>>>;
+  form: TrustFormState;
+  setForm: React.Dispatch<React.SetStateAction<TrustFormState>>;
   accountId: string;
 }) {
-  const [partners, setPartners] = useState<TrustPartner[]>([]);
-  const [loadingPartners, setLoadingPartners] = useState(false);
-  const [showAddPartner, setShowAddPartner] = useState(false);
-  const [newPartner, setNewPartner] = useState({ email: "", name: "", role: "", beneficiaryPercent: "" });
-  const [checkingEmail, setCheckingEmail] = useState(false);
-  const [emailExists, setEmailExists] = useState<{ exists: boolean; name?: string } | null>(null);
-  const [addingPartner, setAddingPartner] = useState(false);
-  const [partnerError, setPartnerError] = useState("");
-  const [partnerSuccess, setPartnerSuccess] = useState("");
+  type TrusteeD = {
+    type: "INDIVIDUAL" | "COMPANY";
+    fullName?: string;
+    address?: TrAddr;
+    companyName?: string;
+    companyTfn?: string;
+    companyAbn?: string;
+    registeredAddress?: TrAddr;
+  };
 
-  // Load partners on mount
-  useEffect(() => {
-    loadPartners();
-  }, [accountId]);
+  function safeParseJson(raw: unknown): unknown[] {
+    if (!raw) return [];
+    let parsed = raw;
+    if (typeof parsed === "string") { try { parsed = JSON.parse(parsed); } catch { return []; } }
+    if (typeof parsed === "string") { try { parsed = JSON.parse(parsed); } catch { return []; } }
+    return Array.isArray(parsed) ? parsed : [];
+  }
+  function parseTrustees(): TrusteeD[] { return safeParseJson(form.trusteeDetails) as TrusteeD[]; }
+
+  const [trustee, setTrustee] = useState<TrusteeD>(() => {
+    const t = parseTrustees();
+    return t.length > 0 ? t[0] : { type: "INDIVIDUAL", fullName: "", address: emptyA() };
+  });
+
+  // All partners for this trust (loaded once, shared across invite blocks)
+  const [allPartners, setAllPartners] = useState<TrustPartnerItem[]>([]);
+  const [partnersLoading, setPartnersLoading] = useState(false);
 
   async function loadPartners() {
-    setLoadingPartners(true);
+    setPartnersLoading(true);
     try {
-      const res = await apiGet<{ partners: TrustPartner[] }>(`/trust-partners/account/${accountId}`);
-      setPartners(res.partners || []);
-    } catch (e) {
-      console.error("Failed to load trust partners:", e);
-    } finally {
-      setLoadingPartners(false);
-    }
+      const res = await apiGet<{ partners: TrustPartnerItem[] }>(`/trust-partners/account/${accountId}`);
+      setAllPartners(res.partners || []);
+    } catch { /* ignore */ }
+    finally { setPartnersLoading(false); }
   }
 
-  // Check if email exists in the system
-  async function checkEmail(email: string) {
-    if (!email || !email.includes("@")) {
-      setEmailExists(null);
-      return;
-    }
-    setCheckingEmail(true);
-    try {
-      const res = await apiGet<{ exists: boolean; name?: string }>(`/partners/check-email?email=${encodeURIComponent(email)}`);
-      setEmailExists(res);
-      if (res.exists && res.name && !newPartner.name) {
-        setNewPartner((p) => ({ ...p, name: res.name || "" }));
-      }
-    } catch (e) {
-      console.error("Failed to check email:", e);
-    } finally {
-      setCheckingEmail(false);
-    }
-  }
+  useEffect(() => { loadPartners(); }, [accountId]);
 
-  async function handleAddPartner() {
-    if (!newPartner.email) {
-      setPartnerError("Email is required");
-      return;
-    }
-    setAddingPartner(true);
-    setPartnerError("");
-    setPartnerSuccess("");
+  // Sync trustee changes to form JSON
+  useEffect(() => {
+    setForm((f) => ({ ...f, trusteeDetails: JSON.stringify([trustee], null, 2) }));
+  }, [trustee]);
 
-    try {
-      await apiPost("/trust-partners", {
-        accountId,
-        email: newPartner.email,
-        name: newPartner.name || undefined,
-        role: newPartner.role || undefined,
-        beneficiaryPercent: newPartner.beneficiaryPercent ? Number(newPartner.beneficiaryPercent) : undefined,
-      });
-      setPartnerSuccess(
-        emailExists?.exists
-          ? `Invitation sent to ${newPartner.email}. They will see the request in their account.`
-          : `Invitation sent to ${newPartner.email}. They will be asked to create an account.`
-      );
-      setNewPartner({ email: "", name: "", role: "", beneficiaryPercent: "" });
-      setEmailExists(null);
-      setShowAddPartner(false);
-      await loadPartners();
-    } catch (e) {
-      setPartnerError(e instanceof Error ? e.message : "Failed to add partner");
-    } finally {
-      setAddingPartner(false);
-    }
-  }
-
-  async function handleRemovePartner(partnerId: string) {
-    if (!confirm("Are you sure you want to remove this trustee/beneficiary?")) return;
-    try {
-      await apiDelete(`/trust-partners/${partnerId}`);
-      await loadPartners();
-    } catch (e) {
-      setPartnerError(e instanceof Error ? e.message : "Failed to remove partner");
-    }
-  }
-
-  async function handleResendInvitation(partnerId: string) {
-    try {
-      await apiPost(`/trust-partners/${partnerId}/resend`, {});
-      setPartnerSuccess("Invitation resent successfully");
-    } catch (e) {
-      setPartnerError(e instanceof Error ? e.message : "Failed to resend invitation");
-    }
-  }
-
-  const STATUS_COLORS: Record<string, string> = {
-    PENDING: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
-    APPROVED: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-    REJECTED: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
-    REMOVED: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
-  };
+  const isUnit = form.trustType === "UNIT";
 
   return (
     <div className="grid gap-6">
-      {/* Basic Trust Info */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Trust Name</label>
-          <input
-            type="text"
-            value={form.trustName || ""}
-            onChange={(e) => setForm((f) => ({ ...f, trustName: e.target.value }))}
-            placeholder="Family Trust"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Trust Type</label>
-          <select
-            value={form.trustType || ""}
-            onChange={(e) => setForm((f) => ({ ...f, trustType: e.target.value as TrustType }))}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          >
-            <option value="">Select Type</option>
-            <option value="DISCRETIONARY">Discretionary (Family) Trust</option>
-            <option value="UNIT">Unit Trust</option>
-            <option value="HYBRID">Hybrid Trust</option>
-            <option value="SMSF">Self-Managed Super Fund</option>
-            <option value="OTHER">Other</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">TFN</label>
-          {form.tfn && form.tfn.includes("*") ? (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white font-mono tracking-widest">
-                {form.tfn}
-              </div>
-              <button type="button" onClick={() => setForm((f) => ({ ...f, tfn: "" }))} className="px-3 py-3 rounded-xl text-xs font-medium border border-slate-300 dark:border-white/20 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/5 whitespace-nowrap">
-                Change
-              </button>
-            </div>
-          ) : (
-            <input
-              type="text"
-              value={form.tfn || ""}
-              onChange={(e) => setForm((f) => ({ ...f, tfn: e.target.value.replace(/[^\d\s]/g, "") }))}
-              placeholder="Trust Tax File Number"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-            />
-          )}
-          <p className="text-xs text-slate-400 dark:text-white/40 mt-1">Stored encrypted</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">ABN</label>
-          <input
-            type="text"
-            value={form.abn || ""}
-            onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))}
-            placeholder="Australian Business Number"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          />
-        </div>
-      </div>
-
+      {/* ── 1. Trust Information ────────────────────────────────── */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Address</label>
-        <input
-          type="text"
-          value={form.address || ""}
-          onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-          placeholder="Trust address"
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Suburb</label>
-          <input
-            type="text"
-            value={form.suburb || ""}
-            onChange={(e) => setForm((f) => ({ ...f, suburb: e.target.value }))}
-            placeholder="Suburb"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">State</label>
-          <select
-            value={form.state || ""}
-            onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          >
-            <option value="">Select State</option>
-            <option value="NSW">New South Wales</option>
-            <option value="VIC">Victoria</option>
-            <option value="QLD">Queensland</option>
-            <option value="WA">Western Australia</option>
-            <option value="SA">South Australia</option>
-            <option value="TAS">Tasmania</option>
-            <option value="ACT">ACT</option>
-            <option value="NT">Northern Territory</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Postcode</label>
-          <input
-            type="text"
-            value={form.postcode || ""}
-            onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
-            maxLength={4}
-            placeholder="2000"
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-          />
-        </div>
-      </div>
-
-      {/* Trustees & Beneficiaries Section */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider mb-4">Trust Information</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider">
-              Trustees & Beneficiaries
-            </h3>
-            <p className="text-xs text-slate-400 dark:text-white/40 mt-1">
-              Add trustees and beneficiaries to your trust. They will receive an invitation to join.
-            </p>
+            <label className={trLbl}>Trust Name <span className="text-red-500">*</span></label>
+            <input type="text" value={form.trustName || ""} onChange={(e) => setForm((f) => ({ ...f, trustName: e.target.value }))} placeholder="Smith Family Trust" className={trIn} />
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAddPartner(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Trustee/Beneficiary
-          </button>
-        </div>
-
-        {/* Partner Alerts */}
-        {partnerError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{partnerError}</p>
+          <div>
+            <label className={trLbl}>Trust Type <span className="text-red-500">*</span></label>
+            <select value={form.trustType || ""} onChange={(e) => setForm((f) => ({ ...f, trustType: e.target.value as TrustType }))} className={trIn}>
+              <option value="">Select Type</option>
+              <option value="DISCRETIONARY">Family / Discretionary Trust</option>
+              <option value="UNIT">Unit Trust</option>
+            </select>
           </div>
-        )}
-        {partnerSuccess && (
-          <div className="mb-4 p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-            <p className="text-sm text-green-600 dark:text-green-400">{partnerSuccess}</p>
-          </div>
-        )}
-
-        {/* Add Partner Modal */}
-        {showAddPartner && (
-          <div className="mb-4 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-            <h4 className="font-medium text-slate-900 dark:text-white mb-4">Add Trustee or Beneficiary</h4>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={newPartner.email}
-                    onChange={(e) => {
-                      setNewPartner((p) => ({ ...p, email: e.target.value }));
-                      setEmailExists(null);
-                    }}
-                    onBlur={() => checkEmail(newPartner.email)}
-                    placeholder="trustee@example.com"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-                  />
-                  {checkingEmail && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="w-5 h-5 border-2 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
+          <div>
+            <label className={trLbl}>Trust TFN <span className="text-red-500">*</span> <span className="ml-1 text-xs text-amber-500 font-normal">Encrypted at rest</span></label>
+            {form.tfn && form.tfn.includes("*") ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white font-mono tracking-widest">
+                  {form.tfn}
                 </div>
-                {emailExists && (
-                  <p className={`text-xs mt-1 ${emailExists.exists ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}`}>
-                    {emailExists.exists 
-                      ? `✓ Existing user: ${emailExists.name || newPartner.email}. They will see the request in their account.`
-                      : "New user - they will be invited to create an account first."
-                    }
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={newPartner.name}
-                  onChange={(e) => setNewPartner((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="Full Name"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Role</label>
-                <select
-                  value={newPartner.role}
-                  onChange={(e) => setNewPartner((p) => ({ ...p, role: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, tfn: "" }))}
+                  className="px-3 py-3 rounded-xl text-xs font-medium border border-slate-300 dark:border-white/20 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/5 whitespace-nowrap"
                 >
-                  <option value="">Select Role</option>
-                  <option value="Trustee">Trustee</option>
-                  <option value="Beneficiary">Beneficiary</option>
-                  <option value="Appointor">Appointor</option>
-                  <option value="Guardian">Guardian</option>
-                  <option value="Settlor">Settlor</option>
-                </select>
+                  Change TFN
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-white/80 mb-2">Distribution % (for Beneficiaries)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={newPartner.beneficiaryPercent}
-                  onChange={(e) => setNewPartner((p) => ({ ...p, beneficiaryPercent: e.target.value }))}
-                  placeholder="50"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button
-                type="button"
-                onClick={handleAddPartner}
-                disabled={addingPartner || !newPartner.email}
-                className="px-4 py-2 rounded-xl bg-[#0891b2] text-white text-sm font-medium hover:bg-[#0e7490] transition-colors disabled:opacity-50"
-              >
-                {addingPartner ? "Sending Invitation..." : "Send Invitation"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddPartner(false);
-                  setNewPartner({ email: "", name: "", role: "", beneficiaryPercent: "" });
-                  setEmailExists(null);
-                }}
-                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-white/20 text-slate-700 dark:text-white/80 text-sm font-medium hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+            ) : (
+              <input
+                type="text"
+                className={trIn + " font-mono tracking-wider"}
+                placeholder="XXX XXX XXX"
+                maxLength={14}
+                value={fmtTfnInput(form.tfn || "")}
+                onChange={(e) => setForm((f) => ({ ...f, tfn: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+              />
+            )}
           </div>
-        )}
+          <div>
+            <label className={trLbl}>Trust ABN</label>
+            <input type="text" className={trIn + " font-mono tracking-wider"} placeholder="XX XXX XXX XXX" maxLength={14} value={form.abn || ""} onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))} />
+          </div>
+        </div>
+      </div>
 
-        {/* Partners List */}
-        {loadingPartners ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="w-8 h-8 border-4 border-[#0891b2] border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : partners.length === 0 ? (
-          <div className="text-center py-8 bg-slate-50 dark:bg-white/5 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
-            <svg className="w-12 h-12 mx-auto text-slate-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-            </svg>
-            <p className="text-slate-500 dark:text-white/50 mb-2">No trustees or beneficiaries added yet</p>
-            <p className="text-xs text-slate-400 dark:text-white/40">Click &quot;Add Trustee/Beneficiary&quot; to invite people to your trust</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {partners.map((partner) => (
-              <div
-                key={partner.id}
-                className="flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0891b2] to-[#0e7490] flex items-center justify-center text-white font-medium">
-                    {(partner.name || partner.email).charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-slate-900 dark:text-white">
-                        {partner.name || partner.email}
-                      </p>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[partner.status]}`}>
-                        {partner.status}
-                      </span>
-                      {partner.user && (
-                        <span className="text-xs text-green-600 dark:text-green-400">
-                          ✓ Registered
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-500 dark:text-white/50">{partner.email}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 dark:text-white/40">
-                      {partner.role && <span>{partner.role}</span>}
-                      {partner.beneficiaryPercent && <span>{partner.beneficiaryPercent}% distribution</span>}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {partner.status === "PENDING" && (
-                    <button
-                      type="button"
-                      onClick={() => handleResendInvitation(partner.id)}
-                      className="text-xs text-[#0891b2] hover:underline"
-                    >
-                      Resend
-                    </button>
-                  )}
-                  {partner.status !== "REMOVED" && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemovePartner(partner.id)}
-                      className="text-xs text-red-500 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
+      {/* ── 2. Trustee ──────────────────────────────────────────── */}
+      <div>
+        <h3 className="text-sm font-semibold text-slate-500 dark:text-white/50 uppercase tracking-wider mb-4">Trustee</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={trLbl}>Trustee Type <span className="text-red-500">*</span></label>
+            <div className="grid grid-cols-2 gap-3">
+              {(["INDIVIDUAL", "COMPANY"] as const).map((t) => (
+                <button key={t} type="button" onClick={() => {
+                  if (t === "INDIVIDUAL") setTrustee({ type: "INDIVIDUAL", fullName: "", address: emptyA() });
+                  else setTrustee({ type: "COMPANY", companyName: "", companyTfn: "", companyAbn: "", registeredAddress: emptyA() });
+                }} className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${trustee.type === t ? "border-[#E91E8C] bg-[#E91E8C]/5 text-[#E91E8C]" : "border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:border-slate-300"}`}>
+                  {t === "INDIVIDUAL" ? "Individual Trustee" : "Company (Corporate Trustee)"}
+                </button>
             ))}
           </div>
+          </div>
+
+          {/* ── Individual Trustee → Direct Entry (Name + Address) ── */}
+          {trustee.type === "INDIVIDUAL" && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-xs text-blue-700 dark:text-blue-400">Enter the individual trustee&apos;s name and residential address. The trustee is responsible for managing the trust.</p>
+                </div>
+              </div>
+              <div>
+                <label className={trLbl}>Trustee Full Name <span className="text-red-500">*</span></label>
+                <input type="text" className={trIn} placeholder="John Smith" value={trustee.fullName || ""} onChange={(e) => setTrustee({ ...trustee, fullName: e.target.value })} />
+              </div>
+              <TrAddrFields label="Trustee" value={trustee.address || emptyA()} onChange={(a) => setTrustee({ ...trustee, address: a })} />
+            </div>
+          )}
+
+          {/* ── Corporate Trustee → Company details + Invite Directors */}
+          {trustee.type === "COMPANY" && (
+            <div className="space-y-5">
+              {/* Company info */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={trLbl}>Company Name <span className="text-red-500">*</span></label>
+                  <input className={trIn} placeholder="ABC Pty Ltd" value={trustee.companyName || ""} onChange={(e) => setTrustee({ ...trustee, companyName: e.target.value })} />
+                </div>
+                <div>
+                  <label className={trLbl}>Company ACN <span className="text-red-500">*</span></label>
+                  <input className={trIn + " font-mono tracking-wider"} placeholder="XXX XXX XXX" maxLength={11} value={trustee.companyTfn || ""} onChange={(e) => setTrustee({ ...trustee, companyTfn: e.target.value.replace(/[^0-9 ]/g, "").slice(0, 11) })} />
+                </div>
+                <div>
+                  <label className={trLbl}>Company ABN</label>
+                  <input className={trIn + " font-mono tracking-wider"} placeholder="XX XXX XXX XXX" maxLength={14} value={trustee.companyAbn || ""} onChange={(e) => setTrustee({ ...trustee, companyAbn: e.target.value })} />
+                </div>
+              </div>
+
+              <TrAddrFields label="Registered" value={trustee.registeredAddress || emptyA()} onChange={(a) => setTrustee({ ...trustee, registeredAddress: a })} />
+
+              {/* Directors — Invite System */}
+              <div className="p-5 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 space-y-4">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <div>
+                    <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Company Directors</p>
+                    <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">Invite each director. They will register (if new) and fill their own details — Full Name, TFN, DOB, Address — as required by ATO for director identification.</p>
+                  </div>
+                </div>
+                {partnersLoading ? (
+                  <div className="flex justify-center py-4"><div className="w-6 h-6 border-2 border-[#E91E8C] border-t-transparent rounded-full animate-spin" /></div>
+                ) : (
+                  <TrustInviteBlock
+                    accountId={accountId}
+                    title="Directors"
+                    subtitle="Company directors for ATO compliance"
+                    buttonLabel="Invite Director"
+                    defaultRole="Director"
+                    roleFilter={["Director"]}
+                    allPartners={allPartners}
+                    onRefresh={loadPartners}
+                  />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 3. Beneficiaries / Unit Holders ─────────────────────── */}
+      <div>
+        {partnersLoading ? (
+          <div className="flex justify-center py-4"><div className="w-6 h-6 border-2 border-[#E91E8C] border-t-transparent rounded-full animate-spin" /></div>
+        ) : isUnit ? (
+          <UnitHolderSection accountId={accountId} allPartners={allPartners} onRefresh={loadPartners} />
+        ) : (
+          <BeneficiarySection accountId={accountId} allPartners={allPartners} onRefresh={loadPartners} />
         )}
       </div>
     </div>
@@ -2328,12 +3326,14 @@ function PartnershipForm({
   accountId,
   ownerName,
   ownerEmail,
+  formError,
 }: {
-  form: Partial<PartnershipProfile & { partners: string }>;
-  setForm: React.Dispatch<React.SetStateAction<Partial<PartnershipProfile & { partners: string }>>>;
+  form: PartnershipFormState;
+  setForm: React.Dispatch<React.SetStateAction<PartnershipFormState>>;
   accountId: string;
   ownerName: string;
   ownerEmail: string;
+  formError?: string;
 }) {
   const inputClass = "w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-900 dark:text-white";
   const labelClass = "block text-sm font-medium text-slate-700 dark:text-white/80 mb-2";
@@ -2356,6 +3356,8 @@ function PartnershipForm({
   const [editForm, setEditForm] = useState({ name: "", email: "", role: "", ownershipPercent: "" });
   const [savingEdit, setSavingEdit] = useState(false);
   const [originalEmail, setOriginalEmail] = useState("");
+  const tfnError = formError && formError.toLowerCase().includes("tfn") ? formError : "";
+  const abnError = formError && formError.toLowerCase().includes("abn") ? formError : "";
 
   useEffect(() => {
     loadPartners();
@@ -2493,12 +3495,20 @@ function PartnershipForm({
         </div>
         <div>
           <label className={labelClass}>ABN</label>
-          <input type="text" value={form.abn || ""} onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value }))} placeholder="Australian Business Number" className={inputClass} />
+          <input
+            type="text"
+            value={form.abn || ""}
+            onChange={(e) => setForm((f) => ({ ...f, abn: e.target.value.replace(/\D/g, "").slice(0, 11) }))}
+            maxLength={11}
+            placeholder="11 digit ABN"
+            className={inputClass}
+          />
+          {abnError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{abnError}</p>}
         </div>
 
         {/* TFN — same UI as Individual & Company */}
         <div>
-          <label className={labelClass}>TFN</label>
+          <label className={labelClass}>TFN <span className="text-red-500">*</span></label>
           {tfnIsMasked ? (
             <div className="flex items-center gap-2">
               <div className={"flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white font-mono tracking-widest"}>
@@ -2526,6 +3536,7 @@ function PartnershipForm({
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
             AES-256-GCM encrypted &bull; Masked for display
           </p>
+          {tfnError && <p className="text-xs text-red-600 dark:text-red-400 mt-1">{tfnError}</p>}
         </div>
 
         <div>
@@ -2567,15 +3578,15 @@ function PartnershipForm({
       </div>
 
       {/* Self (account owner) — always first, not removable */}
-      <div className="p-4 rounded-xl border-2 border-[#0891b2]/30 bg-gradient-to-r from-[#0891b2]/5 to-transparent dark:from-[#0891b2]/10">
+      <div className="p-4 rounded-xl border-2 border-[#E91E8C]/30 bg-gradient-to-r from-[#E91E8C]/5 to-transparent dark:from-[#E91E8C]/10">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-[#0891b2]/10 flex items-center justify-center text-[#0891b2] font-bold text-sm shrink-0">
+          <div className="w-9 h-9 rounded-full bg-[#E91E8C]/10 flex items-center justify-center text-[#E91E8C] font-bold text-sm shrink-0">
             {ownerName ? ownerName.charAt(0).toUpperCase() : "Y"}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-sm text-slate-900 dark:text-white">{ownerName || "You"}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#0891b2]/10 text-[#0891b2] font-medium uppercase tracking-wider">Owner</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E91E8C]/10 text-[#E91E8C] font-medium uppercase tracking-wider">Owner</span>
             </div>
             <span className="text-xs text-slate-400 dark:text-white/40">{ownerEmail}</span>
           </div>
@@ -2777,7 +3788,7 @@ function PartnershipForm({
             </div>
 
             <div className="flex gap-2 pt-1">
-              <button onClick={handleAddPartner} disabled={addingPartner} className="px-4 py-2 text-sm rounded-xl bg-[#0891b2] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
+              <button onClick={handleAddPartner} disabled={addingPartner} className="px-4 py-2 text-sm rounded-xl bg-[#E91E8C] text-white hover:bg-[#d81b7f] disabled:opacity-50 transition-colors">
                 {addingPartner ? "Sending Invitation..." : emailExists?.exists ? "Send Invitation" : "Send Registration Invite"}
               </button>
               <button onClick={() => { setShowAddPartner(false); setPartnerError(""); setEmailExists(null); setNewPartner({ email: "", name: "", role: "", ownershipPercent: "" }); }} className="px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-white/70 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">Cancel</button>
@@ -2786,7 +3797,7 @@ function PartnershipForm({
         ) : (
           <button
             onClick={() => { setShowAddPartner(true); setPartnerError(""); setPartnerSuccess(""); }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#0891b2] hover:text-[#0891b2] transition-colors text-sm font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-white/50 hover:border-[#E91E8C] hover:text-[#E91E8C] transition-colors text-sm font-medium"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             Add Partner

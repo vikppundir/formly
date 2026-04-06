@@ -41,6 +41,7 @@ export interface IndividualProfile {
   firstName?: string;
   middleName?: string;
   lastName?: string;
+  gender?: string;
   tfn?: string;
   dateOfBirth?: string;
   streetAddress?: string;
@@ -116,6 +117,7 @@ export interface CompanyProfile {
   selfIsDirector?: boolean;
   selfIsShareholder?: boolean;
   selfShareCount?: number;
+  selfDirectorId?: string;
   // Other
   financialYearEnd?: string;
   gstRegistered?: boolean;
@@ -129,7 +131,13 @@ export interface CompanyProfile {
 export interface TrustProfile {
   id: string;
   trustName?: string;
-  trustType?: "DISCRETIONARY" | "UNIT" | "HYBRID" | "SMSF" | "OTHER";
+  trustType?: "DISCRETIONARY" | "UNIT" | "HYBRID" | "SMSF" | "TESTAMENTARY" | "OTHER";
+  tfn?: string;
+  abn?: string;
+  address?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
   trusteeDetails?: { name: string; type: string }[];
   beneficiaries?: { name: string; allocation?: number }[];
 }

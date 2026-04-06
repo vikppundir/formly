@@ -266,6 +266,9 @@ export default function UserDashboardPage() {
               </p>
 
               <div className="space-y-3">
+                {loadingRequests && (
+                  <p className="text-sm text-purple-700 dark:text-purple-300">Loading requests...</p>
+                )}
                 {/* Company Partner Requests */}
                 {pendingRequests.companyRequests.map((request) => (
                   <div 

@@ -21,6 +21,12 @@ interface Service {
   category: string | null;
   allowedTypes: AccountType[];
   pricing: Record<AccountType, number>;
+  abnPricing: Record<AccountType, number> | null;
+  perPropertyFee: number | null;
+  gstFee: number | null;
+  requiresDocUpload: boolean;
+  isAddon: boolean;
+  addonNote: string | null;
   isActive: boolean;
   requiresConsent: boolean;
   sortOrder: number;
@@ -50,6 +56,12 @@ export default function ServicesPage() {
     category: "",
     allowedTypes: [] as AccountType[],
     pricing: {} as Record<AccountType, number>,
+    abnPricing: {} as Record<AccountType, number>,
+    perPropertyFee: 0,
+    gstFee: 0,
+    requiresDocUpload: false,
+    isAddon: false,
+    addonNote: "",
     isActive: true,
     requiresConsent: true,
     sortOrder: 0,
@@ -92,6 +104,12 @@ export default function ServicesPage() {
       category: categories[0] || "",
       allowedTypes: [],
       pricing: {},
+      abnPricing: {},
+      perPropertyFee: 0,
+      gstFee: 0,
+      requiresDocUpload: false,
+      isAddon: false,
+      addonNote: "",
       isActive: true,
       requiresConsent: true,
       sortOrder: services.length + 1,
@@ -109,6 +127,12 @@ export default function ServicesPage() {
       category: s.category || "",
       allowedTypes: s.allowedTypes,
       pricing: s.pricing,
+      abnPricing: s.abnPricing || {},
+      perPropertyFee: s.perPropertyFee ?? 0,
+      gstFee: s.gstFee ?? 0,
+      requiresDocUpload: s.requiresDocUpload ?? false,
+      isAddon: s.isAddon ?? false,
+      addonNote: s.addonNote || "",
       isActive: s.isActive,
       requiresConsent: s.requiresConsent,
       sortOrder: s.sortOrder,
@@ -157,13 +181,22 @@ export default function ServicesPage() {
     setSubmitting(true);
     setError("");
     try {
-      const body = {
+      const hasAbnPricing = Object.keys(form.abnPricing).length > 0 &&
+        Object.values(form.abnPricing).some((v) => v > 0);
+
+      const body: Record<string, unknown> = {
         code: form.code,
         name: form.name,
         description: form.description || null,
         category: form.category || null,
         allowedTypes: form.allowedTypes,
         pricing: form.pricing,
+        abnPricing: hasAbnPricing ? form.abnPricing : null,
+        perPropertyFee: form.perPropertyFee > 0 ? form.perPropertyFee : null,
+        gstFee: form.gstFee > 0 ? form.gstFee : null,
+        requiresDocUpload: form.requiresDocUpload,
+        isAddon: form.isAddon,
+        addonNote: form.addonNote || null,
         isActive: form.isActive,
         requiresConsent: form.requiresConsent,
         sortOrder: form.sortOrder,
@@ -229,7 +262,7 @@ export default function ServicesPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-teal-700 w-full sm:w-auto"
+          className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[44px] text-sm font-medium hover:bg-indigo-700 w-full sm:w-auto"
         >
           Create service
         </button>
@@ -339,7 +372,7 @@ export default function ServicesPage() {
                         {s.allowedTypes.map((t) => (
                           <span
                             key={t}
-                            className="text-xs px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400"
+                            className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
                           >
                             {t}
                           </span>
@@ -351,32 +384,52 @@ export default function ServicesPage() {
                         {s.allowedTypes.map((t) => (
                           <div key={t} className="text-xs text-slate-600 dark:text-slate-400">
                             {t}: ${s.pricing[t] ?? 0}
+                            {s.abnPricing?.[t] ? (
+                              <span className="text-amber-600 dark:text-amber-400"> (ABN: ${s.abnPricing[t]})</span>
+                            ) : null}
                           </div>
                         ))}
+                        {s.perPropertyFee != null && s.perPropertyFee > 0 && (
+                          <div className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                            +${s.perPropertyFee}/property
+                          </div>
+                        )}
+                        {s.gstFee != null && s.gstFee > 0 && (
+                          <div className="text-xs text-purple-600 dark:text-purple-400">
+                            GST filing: ${s.gstFee}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          s.isActive
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                        }`}
-                      >
-                        {s.isActive ? "Active" : "Inactive"}
-                      </span>
-                      {s.requiresConsent && (
-                        <span className="ml-1 text-xs text-amber-600 dark:text-amber-400">
-                          (consent)
+                      <div className="flex flex-wrap gap-1">
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            s.isActive
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                          }`}
+                        >
+                          {s.isActive ? "Active" : "Inactive"}
                         </span>
-                      )}
+                        {s.isAddon && (
+                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+                            Add-on
+                          </span>
+                        )}
+                        {s.requiresDocUpload && (
+                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                            Doc Upload
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={() => openEdit(s)}
-                          className="text-teal-600 dark:text-teal-400 text-sm min-h-[36px] px-2 hover:underline"
+                          className="text-indigo-600 dark:text-indigo-400 text-sm min-h-[36px] px-2 hover:underline"
                         >
                           Edit
                         </button>
@@ -521,6 +574,85 @@ export default function ServicesPage() {
                 </div>
               </div>
 
+              {/* Per Property Fee — shown when INDIVIDUAL is selected */}
+              {form.allowedTypes.includes("INDIVIDUAL") && (
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-4 space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">
+                      Per Rental Property Fee ($)
+                    </label>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+                      Extra charge per rental property the individual has added (e.g. $100/property).
+                    </p>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.perPropertyFee || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, perPropertyFee: parseFloat(e.target.value) || 0 }))
+                      }
+                      placeholder="100"
+                      className="w-32 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">
+                      GST/BAS Filing Fee ($)
+                    </label>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+                      Flat fee charged when the individual is GST-registered (for BAS/GST compliance work).
+                    </p>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.gstFee || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, gstFee: parseFloat(e.target.value) || 0 }))
+                      }
+                      placeholder="200"
+                      className="w-32 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-1">
+                      ABN Pricing (alternate base price when user has ABN)
+                    </label>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+                      If user has ABN registered, this price is used instead of the standard price.
+                    </p>
+                    <div className="space-y-2">
+                      {form.allowedTypes.map((type) => (
+                        <div key={`abn-${type}`} className="flex items-center gap-2">
+                          <span className="text-sm text-slate-600 dark:text-slate-400 w-28">
+                            {type}
+                          </span>
+                          <span className="text-sm text-slate-500">$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={form.abnPricing[type] ?? ""}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setForm((f) => ({
+                                ...f,
+                                abnPricing: { ...f.abnPricing, [type]: val },
+                              }));
+                            }}
+                            placeholder="0.00"
+                            className="w-24 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-900 dark:text-slate-100"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -542,7 +674,44 @@ export default function ServicesPage() {
                     Requires legal consent
                   </span>
                 </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.requiresDocUpload}
+                    onChange={(e) => setForm((f) => ({ ...f, requiresDocUpload: e.target.checked }))}
+                    className="rounded border-slate-300 w-4 h-4"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Requires doc upload after purchase
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.isAddon}
+                    onChange={(e) => setForm((f) => ({ ...f, isAddon: e.target.checked }))}
+                    className="rounded border-slate-300 w-4 h-4"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">
+                    Add-on (must purchase with another service)
+                  </span>
+                </label>
               </div>
+
+              {form.isAddon && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Add-on Note
+                  </label>
+                  <input
+                    type="text"
+                    value={form.addonNote}
+                    onChange={(e) => setForm((f) => ({ ...f, addonNote: e.target.value }))}
+                    placeholder="e.g. Must purchase with any tax return option"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 min-h-[48px] text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -575,7 +744,7 @@ export default function ServicesPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-teal-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+                  className="rounded-xl bg-indigo-600 text-white px-4 py-3 min-h-[48px] text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : modal === "create" ? "Create" : "Save"}
                 </button>

@@ -6,7 +6,7 @@
  */
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 
@@ -19,6 +19,12 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace(isAdmin() ? "/dashboard" : "/user-dashboard");
+    }
+  }, [loading, user, isAdmin, router]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
@@ -27,10 +33,7 @@ export default function LoginPage() {
     );
   }
 
-  if (user) {
-    router.replace(isAdmin() ? "/dashboard" : "/user-dashboard");
-    return null;
-  }
+  if (user) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -95,7 +95,13 @@ export type AuditAction =
   | "PARTNER_ACCEPTED"
   | "PARTNER_REJECTED"
   | "ACCESS_DENIED"
-  | "ADMIN_ACTION";
+  | "ADMIN_ACTION"
+  | "LICENSE_ISSUED"
+  | "LICENSE_ACTIVATED"
+  | "LICENSE_VALIDATION_FAILED"
+  | "LICENSE_STATUS_CHANGED"
+  | "LICENSE_RENEWAL_SUCCESS"
+  | "LICENSE_RENEWAL_FAILED";
 
 export interface AuditEvent {
   action: AuditAction;

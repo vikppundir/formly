@@ -247,6 +247,7 @@ export function createAccountRepository(prisma: PrismaClient) {
         firstName?: string;
         middleName?: string | null;
         lastName?: string;
+        gender?: string | null;
         dateOfBirth?: Date | null;
         tfn?: string;
         address?: string;
@@ -316,6 +317,7 @@ export function createAccountRepository(prisma: PrismaClient) {
             firstName: processedData.firstName || "",
             middleName: processedData.middleName,
             lastName: processedData.lastName || "",
+            gender: processedData.gender ?? undefined,
             dateOfBirth: processedData.dateOfBirth,
             tfn: processedData.tfn,
             tfnHash: tfnHash ?? undefined,
@@ -399,6 +401,7 @@ export function createAccountRepository(prisma: PrismaClient) {
             selfIsDirector: processedData.selfIsDirector as boolean | undefined,
             selfIsShareholder: processedData.selfIsShareholder as boolean | undefined,
             selfShareCount: processedData.selfShareCount as number | undefined,
+            selfDirectorId: processedData.selfDirectorId as string | undefined,
             financialYearEnd: processedData.financialYearEnd as string | undefined,
             gstRegistered: processedData.gstRegistered as boolean | undefined,
           },

@@ -8,6 +8,7 @@
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch } from "@/lib/api";
+import Link from "next/link";
 
 type AccountType = "INDIVIDUAL" | "COMPANY" | "TRUST" | "PARTNERSHIP";
 type ServiceStatus = "PENDING" | "CONSENT_REQUIRED" | "IN_PROGRESS" | "REVIEW" | "COMPLETED" | "CANCELLED";
@@ -125,6 +126,7 @@ export default function ServiceRequestsPage() {
   const [detailModal, setDetailModal] = useState(false);
   const [statusModal, setStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState<ServiceStatus>("IN_PROGRESS");
+  const [statusNote, setStatusNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const canManage = hasPermission("manage_settings");
@@ -153,8 +155,44 @@ export default function ServiceRequestsPage() {
   function openStatusUpdate(purchase: ServicePurchase) {
     setSelectedPurchase(purchase);
     setNewStatus(purchase.status);
+    setStatusNote("");
     setStatusModal(true);
     setError("");
+  }
+
+  function getDisplayNotes(raw: string | null): string {
+    if (!raw) return "";
+    try {
+      const parsed = JSON.parse(raw) as { text?: string };
+      if (parsed && typeof parsed === "object" && typeof parsed.text === "string") {
+        return parsed.text;
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+
+  function formatNoteLinesForDisplay(notes: string): string {
+    return notes
+      .split("\n")
+      .map((line) => {
+        const match = line.match(/^\[(.+?)\]\s*(.*)$/);
+        if (!match) return line;
+        const iso = match[1];
+        const message = match[2] || "";
+        const dt = new Date(iso);
+        if (Number.isNaN(dt.getTime())) return line;
+        const friendly = dt.toLocaleString("en-AU", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        return `[${friendly}] ${message}`;
+      })
+      .join("\n");
   }
 
   async function handleStatusUpdate() {
@@ -162,9 +200,13 @@ export default function ServiceRequestsPage() {
     setSubmitting(true);
     setError("");
     try {
-      await apiPatch(`/admin/services/purchases/${selectedPurchase.id}/status`, { status: newStatus });
+      await apiPatch(`/admin/services/purchases/${selectedPurchase.id}/status`, {
+        status: newStatus,
+        note: statusNote.trim() || undefined,
+      });
       setStatusModal(false);
       setSelectedPurchase(null);
+      setStatusNote("");
       loadPurchases();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to update");
@@ -381,6 +423,12 @@ export default function ServiceRequestsPage() {
                           >
                             Update
                           </button>
+                          <Link
+                            href={`/dashboard/users/${p.account.user.id}/360`}
+                            className="text-violet-600 dark:text-violet-400 text-sm hover:underline"
+                          >
+                            360 View
+                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -649,6 +697,20 @@ export default function ServiceRequestsPage() {
                   )}
                 </div>
               </div>
+
+              {/* Notes */}
+              <div>
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Request Notes</h3>
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800">
+                  {getDisplayNotes(selectedPurchase.notes) ? (
+                    <pre className="whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-300 font-sans">
+                      {formatNoteLinesForDisplay(getDisplayNotes(selectedPurchase.notes))}
+                    </pre>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">No notes added yet.</p>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
               <button
@@ -668,6 +730,12 @@ export default function ServiceRequestsPage() {
               >
                 Update Status
               </button>
+              <Link
+                href={`/dashboard/users/${selectedPurchase.account.user.id}/360`}
+                className="px-4 py-2 rounded-lg border border-violet-300 dark:border-violet-700 text-violet-700 dark:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+              >
+                Open 360 View
+              </Link>
             </div>
           </div>
         </div>
@@ -704,6 +772,18 @@ export default function ServiceRequestsPage() {
                 <option value="COMPLETED">Completed</option>
                 <option value="CANCELLED">Cancelled</option>
               </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Note / Message
+              </label>
+              <textarea
+                value={statusNote}
+                onChange={(e) => setStatusNote(e.target.value)}
+                rows={4}
+                placeholder="Add update note for this request..."
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-slate-100"
+              />
             </div>
             {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
             <div className="flex gap-3 justify-end">

@@ -6,11 +6,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-type Tab = "website" | "email" | "sms" | "verification" | "templates" | "support" | "payment" | "abn";
+type Tab = "website" | "email" | "mail-agent" | "sms" | "verification" | "templates" | "support" | "payment" | "abn" | "consents";
 
 interface EmailTemplate {
   id: string;
@@ -26,7 +26,11 @@ interface EmailTemplate {
 export default function SettingsPage() {
   const { hasPermission } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("website");
+  const searchParams = useSearchParams();
+  const allowedTabs: Tab[] = ["website", "email", "mail-agent", "sms", "verification", "templates", "support", "payment", "abn", "consents"];
+  const rawTab = searchParams.get("tab");
+  const initialTab: Tab = rawTab && allowedTabs.includes(rawTab as Tab) ? (rawTab as Tab) : "website";
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -285,7 +289,31 @@ export default function SettingsPage() {
     );
   }
 
-  const emailKeys = ["email_provider", "smtp_host", "smtp_port", "smtp_user", "smtp_pass", "smtp_from_email", "smtp_from_name", "sendgrid_api_key", "sendgrid_from_email", "sendgrid_from_name"];
+  const emailKeys = [
+    "email_provider",
+    "smtp_host",
+    "smtp_port",
+    "smtp_user",
+    "smtp_pass",
+    "smtp_from_email",
+    "smtp_from_name",
+    "sendgrid_api_key",
+    "sendgrid_from_email",
+    "sendgrid_from_name",
+  ];
+  const mailAgentKeys = [
+    "mail_agent_enabled",
+    "mail_agent_provider",
+    "mail_agent_user_scope",
+    "mail_agent_user",
+    "mail_agent_pass",
+    "mail_agent_from_email",
+    "mail_agent_from_name",
+    "mail_agent_smtp_host",
+    "mail_agent_smtp_port",
+    "mail_agent_imap_host",
+    "mail_agent_imap_port",
+  ];
   const smsKeys = ["sms_provider", "twilio_account_sid", "twilio_auth_token", "twilio_phone_number"];
   const verifyKeys = ["email_verification_enabled", "phone_verification_enabled", "otp_expiry_minutes", "otp_length", "app_name"];
 
@@ -299,7 +327,7 @@ export default function SettingsPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-        {(["website", "email", "sms", "verification", "templates", "support", "payment", "abn"] as Tab[]).map((t) => (
+        {(["website", "email", "mail-agent", "sms", "verification", "templates", "support", "payment", "abn", "consents"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -309,7 +337,27 @@ export default function SettingsPage() {
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            {t === "website" ? "Website" : t === "email" ? "Email Config" : t === "sms" ? "SMS Config" : t === "verification" ? "Verification" : t === "templates" ? "Email Templates" : t === "support" ? "Support" : t === "payment" ? "Payment Gateway" : "ABN Lookup"}
+            {t === "website"
+              ? "Website"
+              : t === "email"
+                ? "Transactional Email"
+                : t === "mail-agent"
+                  ? "Mail Agent"
+                  : t === "sms"
+                    ? "SMS Config"
+                    : t === "verification"
+                      ? "Verification"
+                      : t === "templates"
+                        ? "Email Templates"
+                        : t === "support"
+                          ? "Support"
+                          : t === "payment"
+                            ? "Payment Gateway"
+                            : t === "abn"
+                              ? "ABN Lookup"
+                              : t === "consents"
+                                ? "Consent Docs"
+                                : "ABN Lookup"}
           </button>
         ))}
       </div>
@@ -406,6 +454,32 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
+
+            <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900 rounded-xl">
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-200">Offline Activation Fallback</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  If central manager (3001) is down, allow LIC-* key activation locally.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  updateSetting(
+                    "licence_allow_offline_activation",
+                    settings.licence_allow_offline_activation === "false" ? "true" : "false"
+                  )
+                }
+                className={`relative w-12 h-6 rounded-full transition-colors ${
+                  settings.licence_allow_offline_activation !== "false" ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    settings.licence_allow_offline_activation !== "false" ? "translate-x-7" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
@@ -496,6 +570,9 @@ export default function SettingsPage() {
               <option value="smtp">SMTP</option>
               <option value="sendgrid">SendGrid</option>
             </select>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              This section is for transactional/system emails only (OTP, notifications, templates).
+            </p>
           </div>
 
           {settings.email_provider === "sendgrid" ? (
@@ -612,6 +689,174 @@ export default function SettingsPage() {
                 {testingEmail ? "Sending..." : "Send Test"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mail Agent Tab */}
+      {tab === "mail-agent" && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6">
+          <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-900/20 p-4 text-sm text-teal-800 dark:text-teal-200">
+            Enable Mail Agent here. After activation, admin-side users can configure and switch between assigned shared mailboxes and their personal mailbox.
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mail Agent Status</label>
+              <select
+                value={settings.mail_agent_enabled || "true"}
+                onChange={(e) => updateSetting("mail_agent_enabled", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              >
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mailbox Access Scope</label>
+              <select
+                value={settings.mail_agent_user_scope || "admin_only"}
+                onChange={(e) => updateSetting("mail_agent_user_scope", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              >
+                <option value="admin_only">Admin-side users only</option>
+                <option value="all_internal_users">All internal users</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mail Agent Provider</label>
+              <select
+                value={settings.mail_agent_provider || "gmail"}
+                onChange={(e) => {
+                  const provider = e.target.value;
+                  updateSetting("mail_agent_provider", provider);
+                  if (provider === "gmail") {
+                    updateSetting("mail_agent_smtp_host", "smtp.gmail.com");
+                    updateSetting("mail_agent_smtp_port", "587");
+                    updateSetting("mail_agent_imap_host", "imap.gmail.com");
+                    updateSetting("mail_agent_imap_port", "993");
+                  } else if (provider === "outlook") {
+                    updateSetting("mail_agent_smtp_host", "smtp.office365.com");
+                    updateSetting("mail_agent_smtp_port", "587");
+                    updateSetting("mail_agent_imap_host", "outlook.office365.com");
+                    updateSetting("mail_agent_imap_port", "993");
+                  } else if (provider === "yahoo") {
+                    updateSetting("mail_agent_smtp_host", "smtp.mail.yahoo.com");
+                    updateSetting("mail_agent_smtp_port", "587");
+                    updateSetting("mail_agent_imap_host", "imap.mail.yahoo.com");
+                    updateSetting("mail_agent_imap_port", "993");
+                  }
+                }}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              >
+                <option value="gmail">Gmail</option>
+                <option value="outlook">Outlook / Microsoft 365</option>
+                <option value="yahoo">Yahoo</option>
+                <option value="custom">Custom SMTP/IMAP</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mail Login Email</label>
+              <input
+                type="email"
+                value={settings.mail_agent_user || ""}
+                onChange={(e) => updateSetting("mail_agent_user", e.target.value)}
+                placeholder="you@domain.com"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mail Password / App Password</label>
+              <input
+                type="password"
+                value={settings.mail_agent_pass || ""}
+                onChange={(e) => updateSetting("mail_agent_pass", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">From Email</label>
+              <input
+                type="email"
+                value={settings.mail_agent_from_email || ""}
+                onChange={(e) => updateSetting("mail_agent_from_email", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">From Name</label>
+              <input
+                type="text"
+                value={settings.mail_agent_from_name || ""}
+                onChange={(e) => updateSetting("mail_agent_from_name", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Outgoing (SMTP)</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">SMTP Host</label>
+                <input
+                  type="text"
+                  value={settings.mail_agent_smtp_host || (settings.mail_agent_provider === "outlook" ? "smtp.office365.com" : settings.mail_agent_provider === "yahoo" ? "smtp.mail.yahoo.com" : "smtp.gmail.com")}
+                  onChange={(e) => updateSetting("mail_agent_smtp_host", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">SMTP Port</label>
+                <input
+                  type="text"
+                  value={settings.mail_agent_smtp_port || "587"}
+                  onChange={(e) => updateSetting("mail_agent_smtp_port", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Incoming (IMAP)</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">IMAP Host</label>
+                <input
+                  type="text"
+                  value={settings.mail_agent_imap_host || (settings.mail_agent_provider === "outlook" ? "outlook.office365.com" : settings.mail_agent_provider === "yahoo" ? "imap.mail.yahoo.com" : "imap.gmail.com")}
+                  onChange={(e) => updateSetting("mail_agent_imap_host", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">IMAP Port</label>
+                <input
+                  type="text"
+                  value={settings.mail_agent_imap_port || "993"}
+                  onChange={(e) => updateSetting("mail_agent_imap_port", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => saveSettings(mailAgentKeys)}
+              disabled={saving}
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Mail Agent Settings"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/mail")}
+              className="px-6 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              Open Mail Workspace
+            </button>
           </div>
         </div>
       )}
@@ -1170,7 +1415,18 @@ export default function SettingsPage() {
 
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
-              onClick={saveSettings}
+              onClick={() =>
+                saveSettings([
+                  "support_type",
+                  "support_hours_start",
+                  "support_hours_end",
+                  "support_timezone",
+                  "support_days",
+                  "support_email",
+                  "support_phone",
+                  "support_enabled",
+                ])
+              }
               disabled={saving}
               className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
@@ -1201,6 +1457,24 @@ export default function SettingsPage() {
               <option value="stripe">Stripe</option>
               <option value="none">Disabled</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Customer Payment Mode
+            </label>
+            <select
+              value={settings.payment_checkout_mode || "online"}
+              onChange={(e) => updateSetting("payment_checkout_mode", e.target.value)}
+              className="w-full max-w-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+            >
+              <option value="online">Pay Online Only</option>
+              <option value="invoice">Pay by Invoice Only</option>
+              <option value="both">Both (Online + Invoice)</option>
+            </select>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Controls what payment options users see on service purchase.
+            </p>
           </div>
 
           {settings.payment_gateway !== "none" && (
@@ -1380,7 +1654,7 @@ export default function SettingsPage() {
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               onClick={() => saveSettings([
-                "payment_gateway", "stripe_mode", "stripe_publishable_key", "stripe_secret_key", 
+                "payment_gateway", "payment_checkout_mode", "stripe_mode", "stripe_publishable_key", "stripe_secret_key", 
                 "stripe_webhook_secret", "payment_currency", "payment_tax_rate", 
                 "payment_required", "payment_tax_inclusive"
               ])}
@@ -1423,6 +1697,42 @@ export default function SettingsPage() {
                 }`}
               />
             </button>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <h4 className="font-medium text-slate-900 dark:text-slate-100">Central Licence Manager (3001)</h4>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Validation API URL</label>
+              <input
+                type="url"
+                value={settings.licence_central_validate_url || "http://localhost:3001/api/license/validate"}
+                onChange={(e) => updateSetting("licence_central_validate_url", e.target.value)}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm font-mono"
+                placeholder="http://localhost:3001/api/license/validate"
+              />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">API Key (optional)</label>
+                <input
+                  type="password"
+                  value={settings.licence_central_api_key || ""}
+                  onChange={(e) => updateSetting("licence_central_api_key", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Timeout (ms)</label>
+                <input
+                  type="number"
+                  min="1000"
+                  max="30000"
+                  value={settings.licence_central_timeout_ms || "5000"}
+                  onChange={(e) => updateSetting("licence_central_timeout_ms", e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           {/* API Configuration */}
@@ -1491,6 +1801,56 @@ export default function SettingsPage() {
               className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save ABN Settings"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Consent Documents Tab */}
+      {tab === "consents" && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Consent Document Content</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              This content is shown to users when they sign consents, and used in admin PDF export formatting.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tax Agent Authority (HTML)</label>
+              <textarea
+                rows={8}
+                value={settings.consent_tax_agent_authority_html || ""}
+                onChange={(e) => updateSetting("consent_tax_agent_authority_html", e.target.value)}
+                placeholder="<h3>Tax Agent Authority</h3><p>...</p>"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Engagement Letter (HTML)</label>
+              <textarea
+                rows={8}
+                value={settings.consent_engagement_letter_html || ""}
+                onChange={(e) => updateSetting("consent_engagement_letter_html", e.target.value)}
+                placeholder="<h3>Engagement Letter</h3><p>...</p>"
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 text-sm font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() =>
+                saveSettings([
+                  "consent_tax_agent_authority_html",
+                  "consent_engagement_letter_html",
+                ])
+              }
+              disabled={saving}
+              className="px-6 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Consent Content"}
             </button>
           </div>
         </div>

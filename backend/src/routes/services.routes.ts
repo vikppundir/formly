@@ -12,7 +12,93 @@ import { requirePermission } from "../middleware/permission.middleware.js";
 import { createServiceRepository } from "../repositories/service.repository.js";
 import { createAccountRepository } from "../repositories/account.repository.js";
 import { createConsentRepository } from "../repositories/consent.repository.js";
+import { createSettingsRepository } from "../repositories/settings.repository.js";
+import { computeServicePriceBreakdown } from "../services/service-pricing.service.js";
 import { z } from "zod";
+
+type ChecklistFieldState = {
+  weeksRented: number | null;
+  dateFirstEarnedRent: string | null;
+  rentedByAgent: boolean;
+  rentalIncome: number | null;
+  interestOnLoans: number | null;
+  landTax: number | null;
+  insurance: number | null;
+  councilRates: number | null;
+  bodyCorporate: number | null;
+  bankFees: number | null;
+  sundryExpenses: number | null;
+  waterCharges: number | null;
+  repairMaintenance: number | null;
+  isComplete: boolean;
+  documents: Array<{
+    id: string;
+    fileName: string;
+    originalName: string;
+    fileSize: number;
+    mimeType: string;
+    filePath: string;
+    documentType: string | null;
+    createdAt: string;
+  }>;
+};
+
+type StoredChecklistState = {
+  text?: string;
+  checklist?: Record<string, ChecklistFieldState>;
+};
+
+const checklistUpdateSchema = z.object({
+  weeksRented: z.number().nullable().optional(),
+  dateFirstEarnedRent: z.string().nullable().optional(),
+  rentedByAgent: z.boolean().optional(),
+  rentalIncome: z.number().nullable().optional(),
+  interestOnLoans: z.number().nullable().optional(),
+  landTax: z.number().nullable().optional(),
+  insurance: z.number().nullable().optional(),
+  councilRates: z.number().nullable().optional(),
+  bodyCorporate: z.number().nullable().optional(),
+  bankFees: z.number().nullable().optional(),
+  sundryExpenses: z.number().nullable().optional(),
+  waterCharges: z.number().nullable().optional(),
+  repairMaintenance: z.number().nullable().optional(),
+  isComplete: z.boolean().optional(),
+});
+
+function defaultChecklistState(): ChecklistFieldState {
+  return {
+    weeksRented: null,
+    dateFirstEarnedRent: null,
+    rentedByAgent: false,
+    rentalIncome: null,
+    interestOnLoans: null,
+    landTax: null,
+    insurance: null,
+    councilRates: null,
+    bodyCorporate: null,
+    bankFees: null,
+    sundryExpenses: null,
+    waterCharges: null,
+    repairMaintenance: null,
+    isComplete: false,
+    documents: [],
+  };
+}
+
+function parseStoredChecklist(notes: string | null): StoredChecklistState {
+  if (!notes) return {};
+  try {
+    const parsed = JSON.parse(notes) as StoredChecklistState;
+    if (parsed && typeof parsed === "object") return parsed;
+    return {};
+  } catch {
+    return { text: notes };
+  }
+}
+
+function stringifyStoredChecklist(existing: StoredChecklistState): string {
+  return JSON.stringify(existing);
+}
 
 // Validation schemas
 const createServiceSchema = z.object({
@@ -52,6 +138,7 @@ export async function registerServicesRoutes(
   const serviceRepo = createServiceRepository(prisma);
   const accountRepo = createAccountRepository(prisma);
   const consentRepo = createConsentRepository(prisma);
+  const settingsRepo = createSettingsRepository(prisma);
   const authMiddleware = createAuthMiddleware(authService);
 
   // =========================================================================
@@ -89,6 +176,26 @@ export async function registerServicesRoutes(
     }
   );
 
+  // Price preview based on current account data
+  app.get(
+    "/services/price-preview/:serviceId/:accountId",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { serviceId, accountId } = request.params as { serviceId: string; accountId: string };
+
+      const account = await accountRepo.findById(accountId);
+      if (!account) return reply.status(404).send({ error: "Account not found" });
+      if (account.userId !== req.user!.sub) return reply.status(403).send({ error: "Access denied" });
+
+      const service = await serviceRepo.findById(serviceId);
+      if (!service) return reply.status(404).send({ error: "Service not found" });
+
+      const breakdown = await computeServicePriceBreakdown(service as any, account as any, settingsRepo as any);
+      return reply.send(breakdown);
+    }
+  );
+
   // Get services purchased by an account
   app.get(
     "/services/purchased/:accountId",
@@ -115,6 +222,179 @@ export async function registerServicesRoutes(
       });
       
       return reply.send({ purchases });
+    }
+  );
+
+  // Initialize checklist entries for a purchase (rental-property services)
+  app.post(
+    "/services/purchases/:purchaseId/checklists",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { purchaseId } = request.params as { purchaseId: string };
+
+      const purchase = await prisma.accountService.findUnique({
+        where: { id: purchaseId },
+        include: {
+          account: {
+            include: {
+              user: { select: { id: true } },
+              individualProfile: {
+                include: {
+                  rentalProperties: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!purchase) return reply.status(404).send({ error: "Purchase not found" });
+      if (purchase.account.user.id !== req.user!.sub) return reply.status(403).send({ error: "Access denied" });
+
+      const rentals = purchase.account.individualProfile?.rentalProperties ?? [];
+      const stored = parseStoredChecklist(purchase.notes);
+      const checklist = { ...(stored.checklist ?? {}) };
+
+      for (const rental of rentals) {
+        if (!checklist[rental.id]) {
+          checklist[rental.id] = defaultChecklistState();
+        }
+      }
+
+      await prisma.accountService.update({
+        where: { id: purchaseId },
+        data: {
+          notes: stringifyStoredChecklist({
+            ...stored,
+            checklist,
+          }),
+        },
+      });
+
+      return reply.send({ ok: true, count: rentals.length });
+    }
+  );
+
+  // Get checklist entries for a purchase
+  app.get(
+    "/services/purchases/:purchaseId/checklists",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { purchaseId } = request.params as { purchaseId: string };
+
+      const purchase = await prisma.accountService.findUnique({
+        where: { id: purchaseId },
+        include: {
+          account: {
+            include: {
+              user: { select: { id: true } },
+              individualProfile: {
+                include: {
+                  rentalProperties: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!purchase) return reply.status(404).send({ error: "Purchase not found" });
+      if (purchase.account.user.id !== req.user!.sub) return reply.status(403).send({ error: "Access denied" });
+
+      const rentals = purchase.account.individualProfile?.rentalProperties ?? [];
+      const stored = parseStoredChecklist(purchase.notes);
+      const checklist = stored.checklist ?? {};
+
+      const entries = rentals.map((rental) => {
+        const state = checklist[rental.id] ?? defaultChecklistState();
+        return {
+          id: rental.id,
+          accountServiceId: purchase.id,
+          rentalPropertyId: rental.id,
+          rentalProperty: rental,
+          ...state,
+        };
+      });
+
+      return reply.send({ entries });
+    }
+  );
+
+  // Update a checklist entry
+  app.patch(
+    "/services/purchases/:purchaseId/checklists/:entryId",
+    { preHandler: [authMiddleware] },
+    async (request, reply) => {
+      const req = request as AuthenticatedRequest;
+      const { purchaseId, entryId } = request.params as { purchaseId: string; entryId: string };
+      const parsed = checklistUpdateSchema.safeParse(request.body ?? {});
+      if (!parsed.success) {
+        return reply.status(400).send({ error: "Validation failed", details: parsed.error.flatten() });
+      }
+
+      const purchase = await prisma.accountService.findUnique({
+        where: { id: purchaseId },
+        include: {
+          account: {
+            include: {
+              user: { select: { id: true } },
+              individualProfile: {
+                include: {
+                  rentalProperties: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!purchase) return reply.status(404).send({ error: "Purchase not found" });
+      if (purchase.account.user.id !== req.user!.sub) return reply.status(403).send({ error: "Access denied" });
+
+      const rental = (purchase.account.individualProfile?.rentalProperties ?? []).find((r) => r.id === entryId);
+      if (!rental) return reply.status(404).send({ error: "Checklist entry not found" });
+
+      const stored = parseStoredChecklist(purchase.notes);
+      const checklist = { ...(stored.checklist ?? {}) };
+      checklist[entryId] = {
+        ...(checklist[entryId] ?? defaultChecklistState()),
+        ...parsed.data,
+      };
+
+      await prisma.accountService.update({
+        where: { id: purchaseId },
+        data: {
+          notes: stringifyStoredChecklist({
+            ...stored,
+            checklist,
+          }),
+        },
+      });
+
+      return reply.send({ ok: true, entry: { id: entryId, ...checklist[entryId] } });
+    }
+  );
+
+  // Upload checklist document (placeholder until multipart-backed storage is added)
+  app.post(
+    "/services/purchases/:purchaseId/checklists/:entryId/documents",
+    { preHandler: [authMiddleware] },
+    async (_request, reply) => {
+      return reply.status(501).send({
+        error: "Document upload not configured on this deployment yet.",
+        message: "Checklist fields are saved; document upload will be enabled with multipart storage setup.",
+      });
+    }
+  );
+
+  // Delete checklist document (safe no-op placeholder)
+  app.delete(
+    "/services/documents/:docId",
+    { preHandler: [authMiddleware] },
+    async (_request, reply) => {
+      return reply.send({ ok: true });
     }
   );
 
@@ -163,9 +443,9 @@ export async function registerServicesRoutes(
         return reply.status(400).send({ error: "Service already purchased for this financial year" });
       }
 
-      // Get price for account type
-      const price = service.pricing[account.accountType];
-      if (price === undefined) {
+      // Get dynamic price preview from current account profile data
+      const breakdown = await computeServicePriceBreakdown(service as any, account as any, settingsRepo as any);
+      if (!Number.isFinite(breakdown.total) || breakdown.total < 0) {
         return reply.status(400).send({ error: "Price not set for this account type" });
       }
 
@@ -181,7 +461,7 @@ export async function registerServicesRoutes(
       const purchase = await serviceRepo.purchase({
         accountId,
         serviceId,
-        price,
+        price: breakdown.total,
         financialYear,
         notes,
       });
@@ -338,6 +618,7 @@ export async function registerServicesRoutes(
   // Update purchase status (admin)
   const updatePurchaseStatusSchema = z.object({
     status: z.enum(["PENDING", "CONSENT_REQUIRED", "IN_PROGRESS", "REVIEW", "COMPLETED", "CANCELLED"]),
+    note: z.string().trim().max(2000).optional(),
   });
 
   app.patch(
@@ -351,6 +632,20 @@ export async function registerServicesRoutes(
       }
 
       const purchase = await serviceRepo.updateServiceStatus(id, parsed.data.status);
+      const note = parsed.data.note?.trim();
+      if (note) {
+        const existing = parseStoredChecklist(purchase.notes);
+        const stampedNote = `[${new Date().toISOString()}] ${note}`;
+        const mergedText = existing.text ? `${existing.text}\n${stampedNote}` : stampedNote;
+        const mergedNotes = stringifyStoredChecklist({
+          ...existing,
+          text: mergedText,
+        });
+        await prisma.accountService.update({
+          where: { id },
+          data: { notes: mergedNotes },
+        });
+      }
       return reply.send({ purchase });
     }
   );

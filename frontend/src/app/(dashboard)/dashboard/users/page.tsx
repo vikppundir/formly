@@ -5,6 +5,7 @@
  * Requires manage_users permission (enforced in layout + API).
  */
 
+import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState } from "react";
 import {
@@ -217,6 +218,12 @@ export default function UsersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/dashboard/users/${u.id}/360`}
+                        className="text-violet-600 dark:text-violet-400 text-sm min-h-[36px] px-2 inline-flex items-center hover:underline"
+                      >
+                        360 View
+                      </Link>
                       <button
                         type="button"
                         onClick={() => openEdit(u)}
